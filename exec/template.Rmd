@@ -1,0 +1,96 @@
+Top-Scoring Pairs Model Building Report
+---------------------------------------
+`r title`
+
+The following code will build a decision tree model that uses top-scoring pair (TSP) features. First, we set an initial random seed and load the necessary libraries and functions.
+
+```{r initialize, warning=F, messages=F}
+set.seed(seed)
+```
+
+Data will be split into 3/4 for model training and 1/4 for model testing if an external validataion dataset is not supplied. The model-building procedure has two key steps:
+
+1) Empirical Conrol feature selection - To filter down the initial set of features to a more managable size, we focus on selecting those features that have the potential to make a useful TSP. We break the features up into quantiles and form TSPs by comparing high-variance features to low-variance features within each quantile. This process generates candidate pairs that are non-sparse.
+
+2) Regression-based feature selection: The candidate pairs from step one are further pared down to those that are predictive of the outcome. So that all chosen pairs are not providing the same information about the outcome, we condition on previously chosen pairs through regression. We regress each new candidate pair on the outcome and all previous pairs and select the candidate pair that produces the highest conditioned F-statistic for the outcome. This process is repeated until the desired number of pairs is selected.
+
+We cross-validate step 2 to get an out-of-sample accuracy estimate. Then we build the final model on the entire training dataset. We apply it to the test or validation data and present ROC curves for the training and test/validation predictions. We also present the decision tree model that has been built.
+
+The following code executes this entire procedure.
+
+```{r build, warning=F}
+if(is.null(val)){
+	## Split data into 3/4 train, 1/4 test
+	idx <- sample(1:ncol(data), ncol(data)/4)
+	train <- data[,-idx]
+	test <- data[,idx]
+	train_outcome <- outcome[-idx]
+	test_outcome <- outcome[idx]
+	if(!is.null(covar)){
+		train_covar <- covar[-idx,]
+		test_covar <- covar[idx,]
+	} else {
+		train_covar <- test_covar <- covar # all NULL
+	}
+} else {
+	train <- data
+	test <- val
+	train_outcome <- outcome
+	test_outcome <- val_outcome
+	train_covar <- covar
+	test_covar <- val_covar
+}
+
+## Do empirical controls feature selection
+pairs <- empirical_controls(train, 40)
+
+## Throw out pairs that do not flip between classes at all (all 0s or all 1s)
+rmp <- which(rowMeans(pairs) == 1 | rowMeans(pairs) == 0)
+if(length(rmp) > 0){
+	pairs <- pairs[-rmp,]
+}
+
+## This function builds the decision tree on the entire test data and provideds an out-of-sample accuracy estimate.
+model_out <- tsp_model_builder(train, train_outcome, train_covar, pairs, test, npair)
+```
+
+Your final decision tree looks like this:
+
+```{r tree, warning=F}
+drawTreeNodes(model_out$tree, digits=2)
+```
+
+Gene pairs at each node in the model:
+
+```{r pairnames}
+cat(paste0(model_out$pairnames, ": ", model_out$final_names, "\n", collapse="\n"))
+````
+
+Your predicted out-of-sample accuracy:
+
+```{r acc}
+mean(model_out$acc)
+```
+
+Resubstitution and test/validatin ROC curves: 
+
+```{r roc, fig.width=5, fig.height=5, fig.show='hold'}
+options(bitmapType="cairo")
+
+lb <- rgb(154, 192, 205, alpha=0.6*255, maxColorValue=255)
+
+roc_train <- plot.roc(train_outcome, model_out$p_train,  main=paste0("Training Data ROC (n=",length(train_outcome),")"), legacy.axes=T)
+ci_train <- ci.se(roc_train, progress="none")
+plot(ci_train, type="shape", col=lb)
+
+title <- ifelse(is.null(val), "Test Data ROC", "Validation Data ROC")
+title <- paste0(title, " (n=", length(test_outcome), ")")
+
+roc_test <- plot.roc(test_outcome, model_out$p_test,  main=title, legacy.axes=T)
+ci_test <- ci.se(roc_test, progress="none")
+plot(ci_test, type="shape", col=lb)
+```
+
+```{r tail}
+sessionInfo()
+```
