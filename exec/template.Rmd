@@ -90,7 +90,7 @@ if(length(rmp) > 0){
 }
 
 ## This function builds the decision tree on the entire test data and provideds an out-of-sample accuracy estimate.
-model_out <- tsp_model_builder(train, train_outcome, train_covar, pairs, test, npair)
+model_out <- tsp_model_builder(train, train_outcome, train_covar, pairs, test, test_covar, npair)
 ```
 
 ### Results
