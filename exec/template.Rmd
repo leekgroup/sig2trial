@@ -112,7 +112,7 @@ drawTreeNodes(model_out$tree, digits=2)
 Gene pairs at each node in the model:
 
 ```{r pairnames, bootstrap.show.code=F}
-cat(paste0(model_out$pairnames, ": ", model_out$final_names, "\n", collapse="\n"))
+cat(paste0(model_out$pair_names, ": ", model_out$final_names, "\n", collapse="\n"))
 ````
 
 #### Out-of-Sample Accuracy
