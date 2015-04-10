@@ -1,15 +1,25 @@
-#' 
+#'
 #' Empirical controls calculation function
-#' 
-#' This function calculates pairs for a data
-#' set based on the empirical controls concept.
-#' 
-#' @param exprs An input matrix of gene expression values
-#' @param n In each quantile bin, n genes are picked from the top and bottom
-#' 
+#'
+#' Generate candidate top-scoring pairs (TSPs) by finding "empirical
+#' control" genes within quantiles of the data.
+#'
+#' @param exprs An p x m input matrix of gene expression values with p genes and m samples
+#' @param n Number of pairs to create within each quantile bin (default 25)
+#' @param q Number of quantiles desired (default 4)
+#'
 #' @export
-#' 
-#' @return A matrix with pairs in rows and samples in columns
+#'
+#' @details We intend to use TSPs as the features in our gene signature. Examining all features
+#' would require generating $p$ choose 2 comparisons, most of which would be uninformative. We prioritize
+#' the creation of features where one gene is expressed at a constant level across classes and the other
+#' gene is expressed high and low across classes. To unearth pairs that behave like this, we rank all
+#' genes by their average expression and break them into quantile groups. We then rank all genes within
+#' each group by their variance and compute comparisons between the top $n$ most variable and least variable genes.
+#' The result of this function provides a matrix of size $(n*q)$ x $m$, where each row is a binary vector indicating
+#' the value of I($g_1 > g_2$) for two selected.
+#'
+#' @return A (n*q) x m matrix with TSPs in rows and samples in columns
 
 empirical_controls = function(exprs, n=25){
   gm <- cbind(rowMeans(exprs), apply(exprs,1,sd))
@@ -24,10 +34,6 @@ empirical_controls = function(exprs, n=25){
     rn_min <- rn[head(sd_ord, n)]
     rn_max <- rn[tail(sd_ord, n)]
     
-    # These are features for all low-high and high-high variance pairs
-    # all_pairs <- rbind(all_pairs, make_pairs(rn_min, rn_max, exprs, n), make_pairs(rn_max, rn_max, exprs, n))
-    
-    # These are just the low-high variance pairs
     all_pairs <- rbind(all_pairs, make_pairs(rn_min, rn_max, exprs, n))
   }	
   

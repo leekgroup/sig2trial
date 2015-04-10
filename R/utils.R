@@ -1,7 +1,6 @@
 #'
-#' Utility/convenience functions used intrenally
+#' Utility/convenience functions
 #'
-
 #'
 #' Make pairs out of two vectors of rownames (convenience function
 #' to be used with empirical_controls.R)

@@ -25,9 +25,9 @@
 
 
 
-tsp_model_builder <- function(train, train_outcome, train_covar, pairs, test, npair){
+tsp_model_builder <- function(train, train_outcome, train_covar, pairs, test, test_covar, npair){
 
-	ncv <- 10 # no. cross validation folds
+	ncv <- 5 # no. cross validation folds
 	idxs <- split(sample(1:ncol(train)), rep(1:ncv, each=ncol(train)/ncv))
 	acc <- vector("numeric", ncv)
 
@@ -55,9 +55,13 @@ tsp_model_builder <- function(train, train_outcome, train_covar, pairs, test, np
 	        # Do regression feature selection on ktrain
 	        cp <- reg_fs(ktrain, ktrain_outcome, ktrain_covar, npair)
 
-	        tree <- rpart(ktrain_outcome~., data = as.data.frame(t(ktrain[cp,])))
+	        tmp_train_data <- as.data.frame(t(ktrain[cp,]))
+		  tmp_train_data <- cbind(ktrain_covar, tmp_train_data)
+	        tree <- rpart(ktrain_outcome~., data = tmp_train_data)
 	        tree <- prune(tree, cp=tree$cptable[which.min(tree$cptable[,"xerror"]),"CP"])
-	        preds <- predict(tree, newdata=as.data.frame(t(ktest[cp,])))
+		  tmp_test_data <- as.data.frame(t(ktest[cp,]))
+		  tmp_test_data <- cbind(ktest_covar, tmp_test_data)
+	        preds <- predict(tree, newdata=tmp_test_data)
 
       	  acc[i] <- sum(ifelse(preds > 0.5, 1, 0) == ktest_outcome)/length(ktest_outcome)
 	}
@@ -65,8 +69,9 @@ tsp_model_builder <- function(train, train_outcome, train_covar, pairs, test, np
 	# Now we build the overall model on the whole data
 	cp_final <- reg_fs(pairs, train_outcome, train_covar, npair)
 	pairtmp <- as.data.frame(t(pairs[cp_final,]))
-	final_names <- rownames(pairs[cp_final,])
-	pairnames <- paste0("p", 1:npair)
+	pairtmp <- cbind(covar, pairtmp)
+	final_names <- c(colnames(covar), rownames(pairs[cp_final,]))
+	pairnames <- c(colnames(covar), paste0("p", 1:npair))
 	colnames(pairtmp) <- pairnames
 	tree <- rpart(train_outcome~., data=pairtmp)
 	tree <- prune(tree, cp=tree$cptable[which.min(tree$cptable[,"xerror"]),"CP"])
@@ -74,12 +79,14 @@ tsp_model_builder <- function(train, train_outcome, train_covar, pairs, test, np
 	p_train <- predict(tree)
 
 	test_dm <- as.data.frame(sapply(final_names, single_pairs, test))
-	colnames(test_dm) <- pairnames
+	test_dm <- cbind(test_covar, test_dm)
+	colnames(test_dm) <- c(colnames(test_covar), pairnames)
 
-	# Need covar support here
 	p_test <- predict(tree, newdata=test_dm)
 
 	list("tree"=tree, "p_train"=p_train, "p_test"=p_test, "final_names"=final_names, "pair_names"=pairnames, "acc"
 =acc)
 
 }
+
+system.time(out <- tsp_model_builder(train, train_outcome, train_covar, pairs, test, test_covar, npair))
