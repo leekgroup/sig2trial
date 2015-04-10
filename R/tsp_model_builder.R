@@ -55,8 +55,7 @@ tsp_model_builder <- function(train, train_outcome, train_covar, pairs, test, te
 	        # Do regression feature selection on ktrain
 	        cp <- reg_fs(ktrain, ktrain_outcome, ktrain_covar, npair)
 
-	        tmp_train_data <- as.data.frame(t(ktrain[cp,]))
-		  tmp_train_data <- cbind(ktrain_covar, tmp_train_data)
+	        tmp_train_data <- as.data.frame(cbind(ktrain_covar, t(ktrain[cp,])))
 	        tree <- rpart(ktrain_outcome~., data = tmp_train_data)
 	        tree <- prune(tree, cp=tree$cptable[which.min(tree$cptable[,"xerror"]),"CP"])
 		  tmp_test_data <- as.data.frame(cbind(ktest_covar,t(ktest[cp,])))
@@ -67,17 +66,16 @@ tsp_model_builder <- function(train, train_outcome, train_covar, pairs, test, te
 
 	# Now we build the overall model on the whole data
 	cp_final <- reg_fs(pairs, train_outcome, train_covar, npair)
-	pairtmp <- as.data.frame(cbind(covar, t(pairs[cp_final,])))
-	final_names <- c(colnames(covar), rownames(pairs[cp_final,]))
-	pairnames <- c(colnames(covar), paste0("p", 1:npair))
+	pairtmp <- as.data.frame(cbind(train_covar, t(pairs[cp_final,])))
+	final_names <- c(colnames(train_covar), rownames(pairs[cp_final,]))
+	pairnames <- c(colnames(train_covar), paste0("p", 1:npair))
 	colnames(pairtmp) <- pairnames
 	tree <- rpart(train_outcome~., data=pairtmp)
 	tree <- prune(tree, cp=tree$cptable[which.min(tree$cptable[,"xerror"]),"CP"])
 
 	p_train <- predict(tree)
 
-	test_dm <- as.data.frame(sapply(final_names, single_pairs, test))
-	test_dm <- cbind(test_covar, test_dm)
+	test_dm <- as.data.frame(cbind(test_covar, sapply(final_names, single_pairs, test)))
 	colnames(test_dm) <- c(colnames(test_covar), pairnames)
 
 	p_test <- predict(tree, newdata=test_dm)
