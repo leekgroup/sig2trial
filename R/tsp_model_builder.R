@@ -59,8 +59,7 @@ tsp_model_builder <- function(train, train_outcome, train_covar, pairs, test, te
 		  tmp_train_data <- cbind(ktrain_covar, tmp_train_data)
 	        tree <- rpart(ktrain_outcome~., data = tmp_train_data)
 	        tree <- prune(tree, cp=tree$cptable[which.min(tree$cptable[,"xerror"]),"CP"])
-		  tmp_test_data <- as.data.frame(t(ktest[cp,]))
-		  tmp_test_data <- cbind(ktest_covar, tmp_test_data)
+		  tmp_test_data <- as.data.frame(cbind(ktest_covar,t(ktest[cp,])))
 	        preds <- predict(tree, newdata=tmp_test_data)
 
       	  acc[i] <- sum(ifelse(preds > 0.5, 1, 0) == ktest_outcome)/length(ktest_outcome)
@@ -68,8 +67,7 @@ tsp_model_builder <- function(train, train_outcome, train_covar, pairs, test, te
 
 	# Now we build the overall model on the whole data
 	cp_final <- reg_fs(pairs, train_outcome, train_covar, npair)
-	pairtmp <- as.data.frame(t(pairs[cp_final,]))
-	pairtmp <- cbind(covar, pairtmp)
+	pairtmp <- as.data.frame(cbind(covar, t(pairs[cp_final,])))
 	final_names <- c(colnames(covar), rownames(pairs[cp_final,]))
 	pairnames <- c(colnames(covar), paste0("p", 1:npair))
 	colnames(pairtmp) <- pairnames
