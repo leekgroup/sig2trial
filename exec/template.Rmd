@@ -1,24 +1,63 @@
+---
+output:
+  knitrBootstrap::bootstrap_document:
+    title: "Test file"
+    theme: Flatly
+    highlight: Github
+    theme.chooser: FALSE
+    highlight.chooser: FALSE
+---
+
 Top-Scoring Pairs Model Building Report
 ---------------------------------------
-`r title`
+###`r title`
 
-The following code will build a decision tree model that uses top-scoring pair (TSP) features. First, we set an initial random seed and load the necessary libraries and functions.
+### Introduction
+
+The following code will build a decision tree model that uses top-scoring pair (TSP) features as predictors. TSPs are rank-based features that consider the relationship
+between two genes rather than their raw expression levels. For two genes $g_1$, $g_2$, the feature of interest is the indicator of whether or not $g_2$ is more highly expressed
+than $g_1$: I$(g_1 < g_2)$.
+
+We will build a model based on pairs of this form to predict patient outcomes.
+
+To begin, we set an initial random seed to ensure reproducibility of our results.
 
 ```{r initialize, warning=F, messages=F}
 set.seed(seed)
 ```
 
-Data will be split into 3/4 for model training and 1/4 for model testing if an external validataion dataset is not supplied. The model-building procedure has two key steps:
+### Training and Testing Data
 
-1) Empirical Conrol feature selection - To filter down the initial set of features to a more managable size, we focus on selecting those features that have the potential to make a useful TSP. We break the features up into quantiles and form TSPs by comparing high-variance features to low-variance features within each quantile. This process generates candidate pairs that are non-sparse.
+If validation data have been supplied, we will build our model on the training data and make predictions the validation data. If not, we will split the provided dataset
+into training and testing sets, build the model on the training set, and predict on the testing set. These procedures ensure that our model does not overfit to our 
+training data.
 
-2) Regression-based feature selection: The candidate pairs from step one are further pared down to those that are predictive of the outcome. So that all chosen pairs are not providing the same information about the outcome, we condition on previously chosen pairs through regression. We regress each new candidate pair on the outcome and all previous pairs and select the candidate pair that produces the highest conditioned F-statistic for the outcome. This process is repeated until the desired number of pairs is selected.
 
-We cross-validate step 2 to get an out-of-sample accuracy estimate. Then we build the final model on the entire training dataset. We apply it to the test or validation data and present ROC curves for the training and test/validation predictions. We also present the decision tree model that has been built.
+### Feature Selection
 
-The following code executes this entire procedure.
+We employ two steps to find the most predictive gene pair features for our model. We need these feature selection steps because we cannot easily consider all 
+pairwise combinations of genes.
 
-```{r build, warning=F}
+1) Empirical Controls feature selection - This step is a filtration step that does not yet consider the relationship between features and the outcome. We want 
+gene pairs $g_1$, $g_2$ such that the TSP I$(g_1 < g_2)$ is informative. Our quick approach to finding candidate predictors is to focus on pairs where one gene 
+does not vary much between the classes in our outcome while the other varies a lot. To find pairs like this, we rank all of the genes by their average expression and 
+break them up into groups by quantiles. In each quantile, we find the most and least variable genes and create all possible pairs out of those sets. Over all quantiles, 
+we get an initial set of pairs to consider.
+
+2) Regression-based feature selection - In step 2, we pare down to a final set of features of a predetermined size, this time using the outcome to help guide us. We 
+judge how predictive a particular pair is for the outcome via a series of regression models. For each subsequent pair, we include all previously chosen pairs in our 
+regression model. This allows us to select the pair that offers the most additional information about the outcome taking the ones we have already chosen into account.
+
+
+### Cross-validation
+
+We use 5-fold cross-validation to get an estimate of the out-of-sample accuracy of our predictor. This means that we further break up the training data into training and
+testing subsets and do the same procedure described above. We break up the data 5 different times and determine the accuracy of the model we build each time. We then take 
+the average of these accuracies as an indication of how well we think our final model, which will be built on the entire traning data set, will do on an external data set.
+
+The following code executes the entire TSP model-building procedure.
+
+```{r build, warning=F, bootstrap.show.code=F}
 if(is.null(val)){
 	## Split data into 3/4 train, 1/4 test
 	idx <- sample(1:ncol(data), ncol(data)/4)
@@ -54,27 +93,50 @@ if(length(rmp) > 0){
 model_out <- tsp_model_builder(train, train_outcome, train_covar, pairs, test, npair)
 ```
 
-Your final decision tree looks like this:
+### Results
 
-```{r tree, warning=F}
+#### Decision Tree Model
+
+Displayed below is the final decision tree prediction model built using the training data. The pairs that were chosen are labeled below. Note that fewer than the 
+desired number of pairs may appear in the final model - the set chosen is most parsimonious.
+
+Think of the decision tree as a cascading set of choices that result in a predicted probability of the outcome occurring. Start at the top - for a particular patient, the
+first question is whether the gene 2 in the pair at the top of the tree is more highly expressed than gene 1. If this is true, then we drop down to the left and 
+examine the next decision. If this is false, then we drop down to the right. We keep considering subsequent decisions and go left or right until we reach a terminal
+point that does not continue to a next decision. At this point appears the probability of the outcome occurring for this particular patient.
+
+```{r tree, warning=F, bootstrap.show.code=F}
 drawTreeNodes(model_out$tree, digits=2)
 ```
 
 Gene pairs at each node in the model:
 
-```{r pairnames}
+```{r pairnames, bootstrap.show.code=F}
 cat(paste0(model_out$pairnames, ": ", model_out$final_names, "\n", collapse="\n"))
 ````
 
-Your predicted out-of-sample accuracy:
+#### Out-of-Sample Accuracy
 
-```{r acc}
+The accuracy displayed here represents our estimate of the accuracy of our predictor in an external dataset. We obtained this estimate from cross-validation, as
+described above.
+
+```{r acc, bootstrap.show.code=F}
 mean(model_out$acc)
 ```
 
-Resubstitution and test/validatin ROC curves: 
+#### Resubstitution and Test/Validation ROC Curves:
 
-```{r roc, fig.width=5, fig.height=5, fig.show='hold'}
+An ROC curve is a representation of the sensitivty and specificity (or true positive and true negative rates) of our predictor. We present curves for the training and 
+testing datasets. To obtain these curves, we make predictions with our final decision tree model for all patients in the training and testing sets. Then each patient is 
+assigned a probability of the outcome occurring, from 0 to 1. We then take a threshold between 0 and 1 and say that anybody with a probability below this threshold will be
+classified as "no outcome occurring" and anybody above this threshold will be classified as "outcome occurring". We then compare our predictions to the true outcomes and 
+calculate how many ocurrences we got correct (sensitivity) and how many non-occurences we got correct (specificity). To get the full curve, we vary the threshold from 0
+to 1 and re-do this calculation for each threshold.
+
+Our curves also come with pointwise 95% confidence intervals that are calculated via bootstrap. These give us a sense of how certain we are about the curve at every 
+threshold value.
+
+```{r roc, fig.width=5, fig.height=5, fig.show='hold', bootstrap.show.code=F}
 options(bitmapType="cairo")
 
 lb <- rgb(154, 192, 205, alpha=0.6*255, maxColorValue=255)
@@ -91,6 +153,8 @@ ci_test <- ci.se(roc_test, progress="none")
 plot(ci_test, type="shape", col=lb)
 ```
 
-```{r tail}
+Session info for reference.
+
+```{r tail, bootstrap.show.code=F}
 sessionInfo()
 ```

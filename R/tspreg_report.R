@@ -32,5 +32,6 @@ tspreg_report <- function(data, outcome, covar=NULL, val=NULL, val_outcome=NULL,
 		filepath <- paste0(getwd(), "/", filepath)
 	}
 
-	knit2html(paste0(system.file("exec", package="tspreg"),"/template.Rmd"), filepath)
+	#knit2html(paste0(system.file("exec", package="tspreg"),"/template.Rmd"), filepath)
+	render(paste0(system.file("exec", package="tspreg"),"/template.Rmd"), output_format="knitrBootstrap::bootstrap_document",output_file=filepath)
 }
