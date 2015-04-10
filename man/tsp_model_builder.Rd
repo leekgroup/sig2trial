@@ -4,7 +4,8 @@
 \alias{tsp_model_builder}
 \title{Build and cross-validate a TSP-based model}
 \usage{
-tsp_model_builder(train, train_outcome, train_covar, pairs, test, npair)
+tsp_model_builder(train, train_outcome, train_covar, pairs, test, test_covar,
+  npair)
 }
 \arguments{
 \item{train}{p x n training data matrix}

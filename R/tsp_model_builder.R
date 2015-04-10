@@ -88,5 +88,3 @@ tsp_model_builder <- function(train, train_outcome, train_covar, pairs, test, te
 =acc)
 
 }
-
-system.time(out <- tsp_model_builder(train, train_outcome, train_covar, pairs, test, test_covar, npair))

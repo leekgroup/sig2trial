@@ -20,7 +20,7 @@ and samples in columns}
 
 \item{val_outcome}{(optional) Outcome vector for validation data. Required if val is provided.}
 
-\item{val_covar}{(optional) A design matrix of additional covariates. Required if covar and val are specified.}
+\item{val_covar}{(optional) A design matrix of additional covariates. Required if covar and val are provided.}
 
 \item{npair}{The number of pairs desired in the final model}
 
@@ -35,5 +35,13 @@ A report containing the results of the model-building procedure.
 }
 \description{
 Generate a knitr report for model-building using tspreg
+}
+\details{
+This is a wrapper to the TSP model-building procedure. Minimal
+input is a matrix of continous data from which to build features (i.e. a
+gene expression matrix) and a binary outcome vector. This function will
+supply the provided information to an R markdown template that runs
+a standardized model-building procedure. The output will appear in the
+working directory as an HTML report.
 }
 

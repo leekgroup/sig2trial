@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{make_pairs}
 \alias{make_pairs}
-\title{Utility/convenience functions used intrenally}
+\title{Utility/convenience functions}
 \usage{
 make_pairs(rn_min, rn_max, mat, n)
 }
