@@ -1,20 +1,20 @@
 ---
 output:
   knitrBootstrap::bootstrap_document:
-    title: "Test file"
     theme: Flatly
     highlight: Github
     theme.chooser: FALSE
     highlight.chooser: FALSE
+    bibliography: bibliography.bib
 ---
 
 Top-Scoring Pairs Model Building Report
 ---------------------------------------
-###`r title`
+##`r title`
 
 ### Introduction
 
-The following code will build a decision tree model that uses top-scoring pair (TSP) features as predictors. TSPs are rank-based features that consider the relationship
+The following code will build a decision tree model that uses top-scoring pair (TSP) features as predictors [@geman2004classifying]. TSPs are rank-based features that consider the relationship
 between two genes rather than their raw expression levels. For two genes $g_1$, $g_2$, the feature of interest is the indicator of whether or not $g_2$ is more highly expressed
 than $g_1$: I$(g_1 < g_2)$.
 
@@ -32,32 +32,7 @@ If validation data have been supplied, we will build our model on the training d
 into training and testing sets, build the model on the training set, and predict on the testing set. These procedures ensure that our model does not overfit to our 
 training data.
 
-
-### Feature Selection
-
-We employ two steps to find the most predictive gene pair features for our model. We need these feature selection steps because we cannot easily consider all 
-pairwise combinations of genes.
-
-1) Empirical Controls feature selection - This step is a filtration step that does not yet consider the relationship between features and the outcome. We want 
-gene pairs $g_1$, $g_2$ such that the TSP I$(g_1 < g_2)$ is informative. Our quick approach to finding candidate predictors is to focus on pairs where one gene 
-does not vary much between the classes in our outcome while the other varies a lot. To find pairs like this, we rank all of the genes by their average expression and 
-break them up into groups by quantiles. In each quantile, we find the most and least variable genes and create all possible pairs out of those sets. Over all quantiles, 
-we get an initial set of pairs to consider.
-
-2) Regression-based feature selection - In step 2, we pare down to a final set of features of a predetermined size, this time using the outcome to help guide us. We 
-judge how predictive a particular pair is for the outcome via a series of regression models. For each subsequent pair, we include all previously chosen pairs in our 
-regression model. This allows us to select the pair that offers the most additional information about the outcome taking the ones we have already chosen into account.
-
-
-### Cross-validation
-
-We use 5-fold cross-validation to get an estimate of the out-of-sample accuracy of our predictor. This means that we further break up the training data into training and
-testing subsets and do the same procedure described above. We break up the data 5 different times and determine the accuracy of the model we build each time. We then take 
-the average of these accuracies as an indication of how well we think our final model, which will be built on the entire traning data set, will do on an external data set.
-
-The following code executes the entire TSP model-building procedure.
-
-```{r build, warning=F, bootstrap.show.code=F}
+```{r train-test, warning=F, bootstrap.show.code=F}
 if(is.null(val)){
 	## Split data into 3/4 train, 1/4 test
 	idx <- sample(1:ncol(data), ncol(data)/4)
@@ -79,16 +54,44 @@ if(is.null(val)){
 	train_covar <- covar
 	test_covar <- val_covar
 }
+```
 
-## Do empirical controls feature selection
+
+### Feature Selection
+
+We employ two steps to find the most predictive gene pair features for our model. We need these feature selection steps because we cannot easily consider all 
+pairwise combinations of genes.
+
+1) Empirical Controls feature selection - This step is a filtration step that does not yet consider the relationship between features and the outcome. We want 
+gene pairs $g_1$, $g_2$ such that the TSP I$(g_1 < g_2)$ is informative. Our quick approach to finding candidate predictors is to focus on pairs where one gene 
+does not vary much between the classes in our outcome while the other varies a lot. To find pairs like this, we rank all of the genes by their average expression and 
+break them up into groups by quantiles. In each quantile, we find the most and least variable genes and create all possible pairs out of those sets. Over all quantiles, 
+we get an initial set of pairs to consider. Through trials across many datasets, we have found that taking the top and bottom 40 such pairs qithin each quantile provides
+a good initial feature base.
+
+```{r empirical_controls, warning=F, bootstrap.show.code=F}
 pairs <- empirical_controls(train, 40)
 
-## Throw out pairs that do not flip between classes at all (all 0s or all 1s)
+## Throw out pairs that do not flip between classes - all 0s or all 1s - if they exist
 rmp <- which(rowMeans(pairs) == 1 | rowMeans(pairs) == 0)
 if(length(rmp) > 0){
 	pairs <- pairs[-rmp,]
 }
+```
 
+2) Regression-based feature selection - In step 2, we pare down to a final set of features of a predetermined size, this time using the outcome to help guide us. We 
+judge how predictive a particular pair is for the outcome via a series of regression models. For each subsequent pair, we include all previously chosen pairs in our 
+regression model. This allows us to select the pair that offers the most additional information about the outcome taking the ones we have already chosen into account.
+
+### Cross-validation
+
+We use 5-fold cross-validation to get an estimate of the out-of-sample accuracy of our predictor. This means that we further break up the training data into training and
+testing subsets and do the same procedure described above. We break up the data 5 different times and determine the accuracy of the model we build each time. We then take 
+the average of these accuracies as an indication of how well we think our final model, which will be built on the entire traning data set, will do on an external data set.
+
+The following code executes the entire TSP model-building procedure.
+
+```{r build, warning=F, bootstrap.show.code=F}
 ## This function builds the decision tree on the entire test data and provideds an out-of-sample accuracy estimate.
 model_out <- tsp_model_builder(train, train_outcome, train_covar, pairs, test, test_covar, npair)
 ```
@@ -106,7 +109,7 @@ examine the next decision. If this is false, then we drop down to the right. We 
 point that does not continue to a next decision. At this point appears the probability of the outcome occurring for this particular patient.
 
 ```{r tree, warning=F, bootstrap.show.code=F}
-drawTreeNodes(model_out$tree, digits=2)
+drawTreeNodes(model_out$display_tree, digits=2)
 ```
 
 Gene pairs at each node in the model:
@@ -136,7 +139,7 @@ to 1 and re-do this calculation for each threshold.
 Our curves also come with pointwise 95% confidence intervals that are calculated via bootstrap. These give us a sense of how certain we are about the curve at every 
 threshold value.
 
-```{r roc, fig.width=5, fig.height=5, fig.show='hold', bootstrap.show.code=F}
+```{r roc, fig.width=5, fig.height=5, fig.show='hold', warning=F, bootstrap.show.code=F}
 options(bitmapType="cairo")
 
 lb <- rgb(154, 192, 205, alpha=0.6*255, maxColorValue=255)
@@ -153,7 +156,20 @@ ci_test <- ci.se(roc_test, progress="none")
 plot(ci_test, type="shape", col=lb)
 ```
 
-Session info for reference.
+#### Precision Gain in a Clinincal Trial Setting
+
+Our final goal is to get an initial sense of how much value this gene signature would provide in a clinical trial setting. We focus on this setting because we 
+have methods, developed by Colantuoni et. Al [@colantuoni2015leveraging], that allow us to approximate how much more precise of a treatment effect estimate we might
+expect in a trial where we could apply this predictor to all subjects. It is one means of examining how much additional variability in our outcome of interest we 
+might be able to explain with this gene signature.
+
+# Add function here!
+
+sig2trial report v0.9
+This report was built using the [sig2trial](https://github.com/prpatil/sig2trial/) R package.
+Authors: [Prasad Patil](http://www.biostat.jhsph.edu/~prpatil/), [Jeff Leek](http://jtleek.com/)
+
+R session info:
 
 ```{r tail, bootstrap.show.code=F}
 sessionInfo()

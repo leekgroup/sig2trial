@@ -69,18 +69,23 @@ tsp_model_builder <- function(train, train_outcome, train_covar, pairs, test, te
 	pairtmp <- as.data.frame(cbind(train_covar, t(pairs[cp_final,])))
 	final_names <- c(colnames(train_covar), rownames(pairs[cp_final,]))
 	pairnames <- c(colnames(train_covar), paste0("p", 1:npair))
-	colnames(pairtmp) <- pairnames
+
 	tree <- rpart(train_outcome~., data=pairtmp)
 	tree <- prune(tree, cp=tree$cptable[which.min(tree$cptable[,"xerror"]),"CP"])
+
+	colnames(pairtmp) <- pairnames
+
+	display_tree <- rpart(train_outcome~., data=pairtmp)
+	display_tree <- prune(tree, cp=tree$cptable[which.min(tree$cptable[,"xerror"]),"CP"])
 
 	p_train <- predict(tree)
 
 	test_dm <- as.data.frame(cbind(test_covar, sapply(final_names, single_pairs, test)))
-	colnames(test_dm) <- c(colnames(test_covar), pairnames)
+	#colnames(test_dm) <- c(colnames(test_covar), pairnames)
 
 	p_test <- predict(tree, newdata=test_dm)
 
-	list("tree"=tree, "p_train"=p_train, "p_test"=p_test, "final_names"=final_names, "pair_names"=pairnames, "acc"
+	list("tree"=tree, "display_tree"=display_tree, "p_train"=p_train, "p_test"=p_test, "final_names"=final_names, "pair_names"=pairnames, "acc"
 =acc)
 
 }
