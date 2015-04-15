@@ -27,5 +27,4 @@ rpart, rattle, pROC, knitr, rmarkdown, knitrBootstrap
 pandoc
 
 ### Authors
-Prasad Patil
-Jeff Leek
+[Prasad Patil](http://www.biostat.jhsph.edu/~prpatil/), [Jeff Leek](http://jtleek.com/)
