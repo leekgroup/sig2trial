@@ -12,11 +12,13 @@ tsp_model_builder(train, train_outcome, train_covar, pairs, test, test_covar,
 
 \item{train_outcome}{Outcome data of length n}
 
-\item{train_covar}{q x n additional covariates for training data}
+\item{train_covar}{n x q additional covariates for training data (optional)}
 
 \item{pairs}{r x n matrix of TSP generated via empirical controls}
 
 \item{test}{p x m test data matrix, where p columns and column names match up with train}
+
+\item{test_covar}{m x s additional covariates for training data (necessary if train_covar specified; column names must match)}
 
 \item{npair}{Number of pairs desired in the model}
 }
@@ -33,5 +35,14 @@ A list contaiing the following attributes:
 This function takes training/test data and pairs generated via empirical control feature
 selection and builds a decision tree model. It also cross-validates to get an out-of-sample
 accuracy estimate
+}
+\details{
+This is a wrapper for a series of model-building steps. The main output of
+this function is the TSP decision tree model. We incorporate a second
+feature selection step (after empirical controls, done separately) that chooses
+from the candidate pairs. Pairs are chosen based on how much additional predictive
+value they provide on top of pairs already selected (and non-pair covariates, if specified).
+We also cross-validate this entire procedure five times to get an estimate of
+out-of-sample accuracy of our model.
 }
 

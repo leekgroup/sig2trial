@@ -1,18 +1,17 @@
 ---
+bibliography: bibliography.bib
 output:
   knitrBootstrap::bootstrap_document:
     theme: Flatly
     highlight: Github
     theme.chooser: FALSE
     highlight.chooser: FALSE
-    bibliography: bibliography.bib
 ---
 
-Top-Scoring Pairs Model Building Report
+`r title`
 ---------------------------------------
-##`r title`
 
-### Introduction
+# Introduction
 
 The following code will build a decision tree model that uses top-scoring pair (TSP) features as predictors [@geman2004classifying]. TSPs are rank-based features that consider the relationship
 between two genes rather than their raw expression levels. For two genes $g_1$, $g_2$, the feature of interest is the indicator of whether or not $g_2$ is more highly expressed
@@ -22,11 +21,11 @@ We will build a model based on pairs of this form to predict patient outcomes.
 
 To begin, we set an initial random seed to ensure reproducibility of our results.
 
-```{r initialize, warning=F, messages=F}
+```{r initialize, warning=F, messages=F, bootstrap.show.code=F}
 set.seed(seed)
 ```
 
-### Training and Testing Data
+# Training and Testing Data
 
 If validation data have been supplied, we will build our model on the training data and make predictions the validation data. If not, we will split the provided dataset
 into training and testing sets, build the model on the training set, and predict on the testing set. These procedures ensure that our model does not overfit to our 
@@ -57,7 +56,7 @@ if(is.null(val)){
 ```
 
 
-### Feature Selection
+# Feature Selection
 
 We employ two steps to find the most predictive gene pair features for our model. We need these feature selection steps because we cannot easily consider all 
 pairwise combinations of genes.
@@ -83,7 +82,7 @@ if(length(rmp) > 0){
 judge how predictive a particular pair is for the outcome via a series of regression models. For each subsequent pair, we include all previously chosen pairs in our 
 regression model. This allows us to select the pair that offers the most additional information about the outcome taking the ones we have already chosen into account.
 
-### Cross-validation
+# Cross-validation
 
 We use 5-fold cross-validation to get an estimate of the out-of-sample accuracy of our predictor. This means that we further break up the training data into training and
 testing subsets and do the same procedure described above. We break up the data 5 different times and determine the accuracy of the model we build each time. We then take 
@@ -96,9 +95,9 @@ The following code executes the entire TSP model-building procedure.
 model_out <- tsp_model_builder(train, train_outcome, train_covar, pairs, test, test_covar, npair)
 ```
 
-### Results
+# Results
 
-#### Decision Tree Model
+## Decision Tree Model
 
 Displayed below is the final decision tree prediction model built using the training data. The pairs that were chosen are labeled below. Note that fewer than the 
 desired number of pairs may appear in the final model - the set chosen is most parsimonious.
@@ -114,20 +113,22 @@ drawTreeNodes(model_out$display_tree, digits=2)
 
 Gene pairs at each node in the model:
 
-```{r pairnames, bootstrap.show.code=F, eval=F}
-cat(paste0(model_out$pairnames, ": ", model_out$final_names, "\n", collapse="\n"))
+```{r pairnames, bootstrap.show.code=F}
+df <- data.frame("Tree Node Label" = model_out$pair_names, "Feature Name" = gsub("<", " \\< ", model_out$final_names))
+kable(df)
+##cat(paste0(model_out$pairnames, ": ", model_out$final_names, "\n", collapse="\n"))
 ````
 
-#### Out-of-Sample Accuracy
+## Out-of-Sample Accuracy
 
 The accuracy displayed here represents our estimate of the accuracy of our predictor in an external dataset. We obtained this estimate from cross-validation, as
 described above.
 
 ```{r acc, bootstrap.show.code=F}
-mean(model_out$acc)
+cat(paste0("Out-of-sample accuracy: ", round(mean(model_out$acc), digits=3)))
 ```
 
-#### Resubstitution and Test/Validation ROC Curves:
+## Resubstitution and Test/Validation ROC Curves
 
 An ROC curve is a representation of the sensitivty and specificity (or true positive and true negative rates) of our predictor. We present curves for the training and 
 testing datasets. To obtain these curves, we make predictions with our final decision tree model for all patients in the training and testing sets. Then each patient is 
@@ -156,21 +157,30 @@ ci_test <- ci.se(roc_test, progress="none")
 plot(ci_test, type="shape", col=lb)
 ```
 
-#### Precision Gain in a Clinincal Trial Setting
+# Precision Gain in a Clinincal Trial Setting
 
-Our final goal is to get an initial sense of how much value this gene signature would provide in a clinical trial setting. We focus on this setting because we 
+Our final goal is to get a sense of how much value this gene signature would provide in a clinical trial setting. We focus on this setting because we 
 have methods, developed by Colantuoni et. Al [@colantuoni2015leveraging], that allow us to approximate how much more precise of a treatment effect estimate we might
 expect in a trial where we could apply this predictor to all subjects. It is one means of examining how much additional variability in our outcome of interest we 
 might be able to explain with this gene signature.
 
-# Add function here!
+```{r sig_precision, bootstrap.show.code=F}
+sig_precision <- sig_precision_crude(test_outcome, model_out$p_test, test_covar)
+sig_precision
+```
 
+The results above suggest that if we adjusted for our predictor and estimated a treatment effect in
+a clinical trial for our outcome of interest, we could improve the precision of our estimator by
+`r round(sig_precision*100,digits=2)`%.
+
+# End Matter
 sig2trial report v0.9
-This report was built using the [sig2trial](https://github.com/prpatil/sig2trial/) R package.
+This report was built using the [sig2trial](https://github.com/leekgroup/sig2trial/) R package.
+
 Authors: [Prasad Patil](http://www.biostat.jhsph.edu/~prpatil/), [Jeff Leek](http://jtleek.com/)
 
 R session info:
 
-```{r tail, bootstrap.show.code=F}
+```{r tail, bootstrap.show.code=F, bootstrap.show.output=F}
 sessionInfo()
 ```

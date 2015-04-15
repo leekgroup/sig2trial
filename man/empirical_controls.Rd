@@ -4,12 +4,12 @@
 \alias{empirical_controls}
 \title{Empirical controls calculation function}
 \usage{
-empirical_controls(exprs, n = 25)
+empirical_controls(exprs, n = 40, q = 4)
 }
 \arguments{
-\item{exprs}{An p x m input matrix of gene expression values with p genes and m samples}
+\item{exprs}{An p x m input matrix of gene expression values with p genes and m samples. This matrix MUST have rownames.}
 
-\item{n}{Number of pairs to create within each quantile bin (default 25)}
+\item{n}{Number of pairs to create within each quantile bin (default 40)}
 
 \item{q}{Number of quantiles desired (default 4)}
 }

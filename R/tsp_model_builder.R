@@ -7,12 +7,21 @@
 #'
 #' @param train p x n training data matrix
 #' @param train_outcome Outcome data of length n
-#' @param train_covar q x n additional covariates for training data
+#' @param train_covar n x q additional covariates for training data (optional)
 #' @param pairs r x n matrix of TSP generated via empirical controls
 #' @param test p x m test data matrix, where p columns and column names match up with train
+#' @param test_covar m x s additional covariates for training data (necessary if train_covar specified; column names must match)
 #' @param npair Number of pairs desired in the model
 #'
-#' @export
+#' @export 
+#'
+#' @details This is a wrapper for a series of model-building steps. The main output of
+#' this function is the TSP decision tree model. We incorporate a second
+#' feature selection step (after empirical controls, done separately) that chooses
+#' from the candidate pairs. Pairs are chosen based on how much additional predictive
+#' value they provide on top of pairs already selected (and non-pair covariates, if specified).
+#' We also cross-validate this entire procedure five times to get an estimate of
+#' out-of-sample accuracy of our model.
 #'
 #' @return A list contaiing the following attributes:
 #'	\item{tree}{The final decision tree built on training data}
@@ -68,24 +77,24 @@ tsp_model_builder <- function(train, train_outcome, train_covar, pairs, test, te
 	cp_final <- reg_fs(pairs, train_outcome, train_covar, npair)
 	pairtmp <- as.data.frame(cbind(train_covar, t(pairs[cp_final,])))
 	final_names <- c(colnames(train_covar), rownames(pairs[cp_final,]))
-	pairnames <- c(colnames(train_covar), paste0("p", 1:npair))
+	pair_names <- c(colnames(train_covar), paste0("p", 1:npair))
 
 	tree <- rpart(train_outcome~., data=pairtmp)
 	tree <- prune(tree, cp=tree$cptable[which.min(tree$cptable[,"xerror"]),"CP"])
 
-	colnames(pairtmp) <- pairnames
+	colnames(pairtmp) <- pair_names
 
 	display_tree <- rpart(train_outcome~., data=pairtmp)
-	display_tree <- prune(tree, cp=tree$cptable[which.min(tree$cptable[,"xerror"]),"CP"])
+	display_tree <- prune(display_tree, cp=tree$cptable[which.min(tree$cptable[,"xerror"]),"CP"])
 
 	p_train <- predict(tree)
 
 	test_dm <- as.data.frame(cbind(test_covar, sapply(final_names, single_pairs, test)))
-	#colnames(test_dm) <- c(colnames(test_covar), pairnames)
+	#colnames(test_dm) <- pair_names
 
 	p_test <- predict(tree, newdata=test_dm)
 
-	list("tree"=tree, "display_tree"=display_tree, "p_train"=p_train, "p_test"=p_test, "final_names"=final_names, "pair_names"=pairnames, "acc"
+	list("tree"=tree, "display_tree"=display_tree, "p_train"=p_train, "p_test"=p_test, "final_names"=final_names, "pair_names"=pair_names, "acc"
 =acc)
 
 }

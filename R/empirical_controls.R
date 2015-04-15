@@ -4,8 +4,8 @@
 #' Generate candidate top-scoring pairs (TSPs) by finding "empirical
 #' control" genes within quantiles of the data.
 #'
-#' @param exprs An p x m input matrix of gene expression values with p genes and m samples
-#' @param n Number of pairs to create within each quantile bin (default 25)
+#' @param exprs An p x m input matrix of gene expression values with p genes and m samples. This matrix MUST have rownames.
+#' @param n Number of pairs to create within each quantile bin (default 40)
 #' @param q Number of quantiles desired (default 4)
 #'
 #' @export
@@ -21,9 +21,13 @@
 #'
 #' @return A (n*q) x m matrix with TSPs in rows and samples in columns
 
-empirical_controls = function(exprs, n=25){
+empirical_controls = function(exprs, n=40, q=4){
+  if(is.null(rownames(exprs))){
+	stop("Input data matrix needs rownames.")
+  }
+
   gm <- cbind(rowMeans(exprs), apply(exprs,1,sd))
-  qt <- quantile(gm[,1], na.rm=T) # Get cut points
+  qt <- quantile(gm[,1], na.rm=T, probs=seq(0,1,length.out=q+1)) # Get cut points
   all_pairs <- all_min <- all_max <- c()
   
   for(i in 1:(length(qt)-1)){

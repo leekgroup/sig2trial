@@ -3,5 +3,6 @@
 export(empirical_controls)
 export(fstats)
 export(reg_fs)
+export(sig_precision_crude)
 export(tsp_model_builder)
 export(tspreg_report)

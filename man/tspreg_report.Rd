@@ -24,14 +24,14 @@ and samples in columns}
 
 \item{npair}{The number of pairs desired in the final model}
 
-\item{filepath}{A character string of where the report should be generated. Default NULL, which generates a file called "[curtime]_output.Rmd" in the working directory.}
+\item{filepath}{A character string of where the report should be generated. Default NULL, which generates a file called "[curtime]_output.html" in the working directory.}
 
 \item{title}{A character string setting the rport title. Default "Example".}
 
 \item{seed}{A random seed set at the beginning of the report. Default 47209}
 }
 \value{
-A report containing the results of the model-building procedure.
+The final decision tree model fit in the procedure.
 }
 \description{
 Generate a knitr report for model-building using tspreg
@@ -43,5 +43,8 @@ gene expression matrix) and a binary outcome vector. This function will
 supply the provided information to an R markdown template that runs
 a standardized model-building procedure. The output will appear in the
 working directory as an HTML report.
+
+You may specify a full filepath to an output file. Just make sure the file has a
+".html" extension.
 }
 
