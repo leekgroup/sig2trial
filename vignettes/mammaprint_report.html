@@ -1,0 +1,1143 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- jQuery -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+  
+  <!-- bootstrap -->
+  <!--<link href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet"  id="style">-->
+  <script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+  
+  <!-- highlight.js -->
+  <!--<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/7.3/styles/default.min.css" rel="stylesheet" id="code-style">-->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/7.3/highlight.min.js"></script>
+  <script>
+  hljs.LANGUAGES.r=function(a){var b="([a-zA-Z]|\\.[a-zA-Z.])[a-zA-Z0-9._]*";return{c:[a.HCM,{b:b,l:b,k:{keyword:"function if in break next repeat else for return switch while try tryCatch|10 stop warning require library attach detach source setMethod setGeneric setGroupGeneric setClass ...|10",literal:"NULL NA TRUE FALSE T F Inf NaN NA_integer_|10 NA_real_|10 NA_character_|10 NA_complex_|10"},r:0},{cN:"number",b:"0[xX][0-9a-fA-F]+[Li]?\\b",r:0},{cN:"number",b:"\\d+(?:[eE][+\\-]?\\d*)?L\\b",r:0},{cN:"number",b:"\\d+\\.(?!\\d)(?:i\\b)?",r:0},{cN:"number",b:"\\d+(?:\\.\\d*)?(?:[eE][+\\-]?\\d*)?i?\\b",r:0},{cN:"number",b:"\\.\\d+(?:[eE][+\\-]?\\d*)?i?\\b",r:0},{b:"`",e:"`",r:0},{cN:"string",b:'"',e:'"',c:[a.BE],r:0},{cN:"string",b:"'",e:"'",c:[a.BE],r:0}]}}(hljs); </script>
+  <!--<script type="text/javascript", src="https://yandex.st/highlightjs/7.3/languages/r.min.js"></script>-->
+  
+  <!-- Manific Popup -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/0.8.9/jquery.magnific-popup.min.js"></script>
+  
+  <script type="text/javascript"
+    src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+  </script>
+  <script defer="defer">
+  // Function to generate the dynamic table of contents
+  jQuery.fn.generate_TOC = function () {
+    var base = $(this[0]);
+  
+    var selectors = ['h1', 'h2', 'h3', 'h4'];
+  
+    var last_ptr = [{}, {}, {}, {}];
+  
+    var anchors = {};
+  
+    generate_anchor = function (text) {
+      var test = text.replace(/\W/g, '_');
+  
+      while(test in anchors){
+        //if no suffix, add one
+        if(test.match(/_\d+$/) === null){
+          test = test + "_2";
+        }
+        //else generate unique id for duplicates by adding one to the suffix
+        else {
+          test = test.replace(/_(\d+)$/, function(match, number){ var num=+number+1; return("_" + num) });
+        }
+      }
+      anchors[test]=1;
+      return(test);
+    }
+  
+    $(selectors.join(',')).filter(function(index) { return $(this).parent().attr("id") != 'header'; }).each(function () {
+  
+      var heading = $(this);
+      var idx = selectors.indexOf(heading.prop('tagName').toLowerCase());
+      var itr = 0;
+  
+      while (itr <= idx) {
+        if (jQuery.isEmptyObject(last_ptr[itr])) {
+          last_ptr[itr] = $('<ul>').addClass('nav');
+          if (itr === 0) {
+            base.append(last_ptr[itr])
+          } else {
+            if(last_ptr[itr-1].children('li').length === 0){
+              last_ptr[itr-1].append(last_ptr[itr]);
+            }
+            else {
+              last_ptr[itr - 1].children('li').last().append(last_ptr[itr]);
+            }
+          }
+        }
+        itr++;
+      }
+      var anchor = generate_anchor(heading.text());
+      heading.attr('id', anchor);
+      var a = $('<a>')
+      .text(heading.text())
+      .attr('href', '#' + anchor);
+  
+    var li = $('<li>')
+      .append(a);
+  
+    last_ptr[idx].append(li);
+    for (i = idx + 1; i < last_ptr.length; i++) {
+      last_ptr[i] = {};
+    }
+    });
+  }
+  /* run scripts when document is ready */
+  $(function() {
+    "use strict";
+  
+    var $window = $(window);
+    var $body = $(document.body);
+  
+    /* size of thumbnails */
+  
+    var hidden_types = ['source']
+    var output_types = ['output', 'message', 'warning', 'error']
+  
+    /* style tables */
+    $('table').addClass('table table-striped table-bordered table-hover table-condensed');
+  
+    $('pre code').each(function(i, e) {
+      hljs.highlightBlock(e);
+    });
+  
+    /* Magnific Popup */
+    $(".thumbnail").each(function(){
+      $(this).magnificPopup({
+        disableOn: 768,
+        closeOnContentClick: true,
+  
+        type: 'image',
+        items: {
+          src: $(this).find('img').attr('src'),
+        }
+      });
+    });
+  
+    function toggle_block(obj, show) {
+      var span = obj.find('span');
+      if(show === true){
+        span.removeClass('glyphicon-chevron-up').addClass('glyphicon-chevron-down');
+        obj.next('pre').slideDown();
+      }
+      else {
+        span.removeClass('glyphicon-chevron-down').addClass('glyphicon-chevron-up');
+        obj.next('pre').slideUp();
+      }
+    }
+  
+    function toggle_thumbnails(imgs, show){
+      if(show === true){
+        imgs.parents().show()
+        imgs.slideDown();
+      }
+      else {
+        imgs.slideUp(400, function(){ $(this).parent().hide(); });
+      }
+    }
+  
+    function global_toggle(obj){
+      var type = obj.attr('type');
+      var show = !obj.parent('li').hasClass('active');
+      if(show === true){
+        obj.parent('li').addClass('active');
+      }
+      else{
+        obj.parent('li').removeClass('active');
+      }
+      if(type == 'figure'){
+        toggle_thumbnails($('.thumbnail img'), show);
+      }
+      else {
+        $('.toggle.' + type).each(function() { toggle_block($(this), show); });
+      }
+    }
+  
+    /* onclick toggle next code block */
+    $('.toggle').click(function() {
+      var span = $(this).find('span');
+      toggle_block($(this), !span.hasClass('glyphicon-chevron-down'));
+      return false
+    })
+  
+    // global toggles
+    $('.toggle-global').click(function(){
+      var type = $(this).attr('type');
+      if(type === 'all-source'){
+          $('li a.source').each(function() {
+            global_toggle($(this));
+          });
+        }
+      else if(type === 'all-output'){
+        $.each(output_types, function(i, val){
+          console.log(val);
+          global_toggle($('li a.' + val));
+        });
+      }
+      else {
+        console.log($(this));
+        global_toggle($(this));
+      }
+      return false;
+    });
+    /* table of contents */
+    if($(['h1', 'h2', 'h3', 'h4'].join(',')).length > 0){
+      $('body > #wrap > .container > .row').append('<div class="col-md-2"><div id="toc" class="well sidebar sidenav affix hidden-print"/></div>');
+      $('#toc').generate_TOC();
+    }
+  
+    $.each(hidden_types, function(i, type) {
+      $('li[type=' + type + ']').each(function(){ global_toggle($(this)); });
+    });
+  
+    /* remove paragraphs with no content */
+    $('p:empty').remove();
+  
+    $body.scrollspy({
+      target: '.sidebar',
+    });
+  
+    /* theme switch */
+    $('.theme-switch').click(function(){
+      var css = $('link[title=' + $(this).attr('title') + ']');
+      $('#theme[rel=stylesheet]').attr('href', css.attr('href'));
+      $('.theme-switch').closest('li').removeClass('active');
+      $(this).closest('li').addClass('active');
+      return false;
+    });
+    /* code style switch */ //TODO use same function for both of these?
+    $('.highlight-switch').click(function(){
+      var css = $('link[title="' + $(this).attr('title') + '"]');
+      $('#highlight[rel=stylesheet]').attr('href', css.attr('href'));
+      $('.highlight-switch').closest('li').removeClass('active');
+      $(this).closest('li').addClass('active');
+      return false;
+    });
+  
+    //TODO refresh on show/hide
+    $window.on('load', function () {
+      $body.scrollspy('refresh');
+    })
+  
+  });
+  
+  </script>
+  <style>
+  /* Knitr_bootstrap styles */
+  #header {
+    display: none !important;
+    visibility: hidden !important;
+  }
+  #wrap .container-fluid {
+    padding: 0;
+    overflow: hidden;
+  }
+  .toggle{
+    text-transform: capitalize;
+  }
+  
+  .toggle-global{
+    text-transform: capitalize;
+  }
+  
+  /* Sticky footer styles */
+  * {
+    margin:0;
+  }
+  html,
+  body {
+      height: 100%;
+      padding:0 !important;
+      /* The html and body elements cannot have any padding or margin. */
+      /*overflow-x: hidden;*/
+  }
+  
+  /* Wrapper for page content to push down footer */
+  #wrap {
+      min-height: 100%;
+      height: auto !important;
+      height: 100%;
+      /* Negative indent footer by it's height */
+      margin: 0 auto -120px;
+  }
+  
+  /* Set the fixed height of the footer here */
+  #push,
+  #footer {
+      height: 120px;
+  }
+  
+  #footer {
+    text-align: center;
+  }
+  
+  /* Top level subheader elements.  These are the first nested items underneath a header element. */
+  .header li {
+    font-size: 20px;
+  }
+  
+  /* Makes the font smaller for all subheader elements. */
+  .sub-header li {
+      font-size: 12px;
+  }
+  
+  button.thumbnails {
+    margin-left:0px;
+  }
+  
+  /*
+   * Side navigation
+   *
+   * Scrollspy and affixed enhanced navigation to highlight sections and secondary
+   * sections of docs content.
+   */
+  
+  /* By default it's not affixed in mobile views, so undo that */
+  .sidebar.affix {
+    position: static;
+  }
+  
+  /* First level of nav */
+  .sidenav {
+    margin-top: 30px;
+    margin-bottom: 30px;
+    padding-top:    10px;
+    padding-bottom: 10px;
+    border-radius: 5px;
+  }
+  
+  /* All levels of nav */
+  .sidebar .nav > li > a {
+    display: block;
+    padding: 5px 20px;
+  }
+  .sidebar .nav > li > a:hover,
+  .sidebar .nav > li > a:focus {
+    text-decoration: none;
+    border-right: 1px solid;
+  }
+  .sidebar .nav > .active > a,
+  .sidebar .nav > .active:hover > a,
+  .sidebar .nav > .active:focus > a {
+    font-weight: bold;
+    background-color: transparent;
+    border-right: 1px solid;
+  }
+  
+  /* Nav: second level (shown on .active) */
+  .sidebar .nav .nav {
+    display: none; /* Hide by default, but at >768px, show it */
+    margin-bottom: 8px;
+  }
+  .sidebar .nav .nav > li > a {
+    padding-top:    3px;
+    padding-bottom: 3px;
+    padding-left: 30px;
+    font-size: 90%;
+  }
+  
+  .sidebar .nav .nav .nav > li > a {
+    padding-left: 40px;
+  }
+  .sidebar .nav .nav .nav .nav > li > a {
+    padding-left: 50px;
+  }
+  
+  /* Show and affix the side nav when space allows it */
+  @media screen and (min-width: 992px) {
+    .sidebar .nav > .active > ul {
+      display: block;
+    }
+    /* Widen the fixed sidebar */
+    .sidebar.affix,
+    .sidebar.affix-bottom {
+      width: 213px;
+    }
+    .sidebar.affix-top,
+    .sidebar.affix {
+      position: fixed; /* Undo the static from mobile first approach */
+      top: 30px;
+    }
+    .sidebar.affix-bottom {
+      position: absolute; /* Undo the static from mobile first approach */
+    }
+    .sidebar.affix-bottom .sidenav,
+    .sidebar.affix .sidenav {
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+  }
+  @media screen and (min-width: 1200px) {
+    /* Widen the fixed sidebar again */
+    .sidebar.affix-bottom,
+    .sidebar.affix {
+      width: 263px;
+    }
+  }
+  
+  #toc {
+    padding: 10px 0px;
+    margin:0;
+    border:0;
+  }
+  
+  
+  .panel pre {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  button + pre {
+    margin: 0;
+    padding: 0;
+  }
+  pre code {
+    border-radius: 0;
+  }
+  /* Magnific Popup CSS */
+  .mfp-bg {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1042;
+    overflow: hidden;
+    position: fixed;
+    background: #0b0b0b;
+    opacity: 0.8;
+    filter: alpha(opacity=80); }
+  
+  .mfp-wrap {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1043;
+    position: fixed;
+    outline: none !important;
+    -webkit-backface-visibility: hidden; }
+  
+  .mfp-container {
+    text-align: center;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    padding: 0 8px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box; }
+  
+  .mfp-container:before {
+    content: '';
+    display: inline-block;
+    height: 100%;
+    vertical-align: middle; }
+  
+  .mfp-align-top .mfp-container:before {
+    display: none; }
+  
+  .mfp-content {
+    position: relative;
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0 auto;
+    text-align: left;
+    z-index: 1045; }
+  
+  .mfp-inline-holder .mfp-content,
+  .mfp-ajax-holder .mfp-content {
+    width: 100%;
+    cursor: auto; }
+  
+  .mfp-ajax-cur {
+    cursor: progress; }
+  
+  .mfp-zoom-out-cur,
+  .mfp-zoom-out-cur .mfp-image-holder .mfp-close {
+    cursor: -moz-zoom-out;
+    cursor: -webkit-zoom-out;
+    cursor: zoom-out; }
+  
+  .mfp-zoom {
+    cursor: pointer;
+    cursor: -webkit-zoom-in;
+    cursor: -moz-zoom-in;
+    cursor: zoom-in; }
+  
+  .mfp-auto-cursor .mfp-content {
+    cursor: auto; }
+  
+  .mfp-close,
+  .mfp-arrow,
+  .mfp-preloader,
+  .mfp-counter {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none; }
+  
+  .mfp-loading.mfp-figure {
+    display: none; }
+  
+  .mfp-hide {
+    display: none !important; }
+  
+  .mfp-preloader {
+    color: #cccccc;
+    position: absolute;
+    top: 50%;
+    width: auto;
+    text-align: center;
+    margin-top: -0.8em;
+    left: 8px;
+    right: 8px;
+    z-index: 1044; }
+  
+  .mfp-preloader a {
+    color: #cccccc; }
+  
+  .mfp-preloader a:hover {
+    color: white; }
+  
+  .mfp-s-ready .mfp-preloader {
+    display: none; }
+  
+  .mfp-s-error .mfp-content {
+    display: none; }
+  
+  button.mfp-close,
+  button.mfp-arrow {
+    overflow: visible;
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+    -webkit-appearance: none;
+    display: block;
+    padding: 0;
+    z-index: 1046;
+    -webkit-box-shadow: none;
+    box-shadow: none; }
+  
+  button::-moz-focus-inner {
+    padding: 0;
+    border: 0; }
+  
+  .mfp-close {
+    width: 44px;
+    height: 44px;
+    line-height: 44px;
+    position: absolute;
+    right: 0;
+    top: 0;
+    text-decoration: none;
+    text-align: center;
+    opacity: 0.65;
+    padding: 0 0 18px 10px;
+    color: white;
+    font-style: normal;
+    font-size: 28px;
+    font-family: Arial, Baskerville, monospace; }
+    .mfp-close:hover, .mfp-close:focus {
+      opacity: 1; }
+    .mfp-close:active {
+      top: 1px; }
+  
+  .mfp-close-btn-in .mfp-close {
+    color: #333333; }
+  
+  .mfp-image-holder .mfp-close,
+  .mfp-iframe-holder .mfp-close {
+    color: white;
+    right: -6px;
+    text-align: right;
+    padding-right: 6px;
+    width: 100%; }
+  
+  .mfp-counter {
+    position: absolute;
+    top: 0;
+    right: 0;
+    color: #cccccc;
+    font-size: 12px;
+    line-height: 18px; }
+  
+  .mfp-arrow {
+    position: absolute;
+    opacity: 0.65;
+    margin: 0;
+    top: 50%;
+    margin-top: -55px;
+    padding: 0;
+    width: 90px;
+    height: 110px;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0); }
+  
+  .mfp-arrow:active {
+    margin-top: -54px; }
+  
+  .mfp-arrow:hover,
+  .mfp-arrow:focus {
+    opacity: 1; }
+  
+  .mfp-arrow:before, .mfp-arrow:after,
+  .mfp-arrow .mfp-b,
+  .mfp-arrow .mfp-a {
+    content: '';
+    display: block;
+    width: 0;
+    height: 0;
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin-top: 35px;
+    margin-left: 35px;
+    border: medium inset transparent; }
+  .mfp-arrow:after,
+  .mfp-arrow .mfp-a {
+    border-top-width: 13px;
+    border-bottom-width: 13px;
+    top: 8px; }
+  .mfp-arrow:before,
+  .mfp-arrow .mfp-b {
+    border-top-width: 21px;
+    border-bottom-width: 21px; }
+  
+  .mfp-arrow-left {
+    left: 0; }
+    .mfp-arrow-left:after,
+    .mfp-arrow-left .mfp-a {
+      border-right: 17px solid white;
+      margin-left: 31px; }
+    .mfp-arrow-left:before,
+    .mfp-arrow-left .mfp-b {
+      margin-left: 25px;
+      border-right: 27px solid #3f3f3f; }
+  
+  .mfp-arrow-right {
+    right: 0; }
+    .mfp-arrow-right:after,
+    .mfp-arrow-right .mfp-a {
+      border-left: 17px solid white;
+      margin-left: 39px; }
+    .mfp-arrow-right:before,
+    .mfp-arrow-right .mfp-b {
+      border-left: 27px solid #3f3f3f; }
+  
+  .mfp-iframe-holder {
+    padding-top: 40px;
+    padding-bottom: 40px; }
+  
+  .mfp-iframe-holder .mfp-content {
+    line-height: 0;
+    width: 100%;
+    max-width: 900px; }
+  
+  .mfp-iframe-scaler {
+    width: 100%;
+    height: 0;
+    overflow: hidden;
+    padding-top: 56.25%; }
+  
+  .mfp-iframe-scaler iframe {
+    position: absolute;
+    display: block;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+    background: black; }
+  
+  .mfp-iframe-holder .mfp-close {
+    top: -40px; }
+  
+  /* Main image in popup */
+  img.mfp-img {
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    display: block;
+    line-height: 0;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    padding: 40px 0 40px;
+    margin: 0 auto; }
+  
+  /* The shadow behind the image */
+  .mfp-figure:after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 40px;
+    bottom: 40px;
+    display: block;
+    right: 0;
+    width: auto;
+    height: auto;
+    z-index: -1;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+    background: #444444; }
+  
+  .mfp-figure {
+    line-height: 0; }
+  
+  .mfp-bottom-bar {
+    margin-top: -36px;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    cursor: auto; }
+  
+  .mfp-title {
+    text-align: left;
+    line-height: 18px;
+    color: #f3f3f3;
+    word-wrap: break-word;
+    padding-right: 36px; }
+  
+  .mfp-figure small {
+    color: #bdbdbd;
+    display: block;
+    font-size: 12px;
+    line-height: 14px; }
+  
+  .mfp-image-holder .mfp-content {
+    max-width: 100%; }
+  
+  .mfp-gallery .mfp-image-holder .mfp-figure {
+    cursor: pointer; }
+  
+  @media screen and (max-width: 800px) and (orientation: landscape), screen and (max-height: 300px) {
+    /**
+     * Remove all paddings around the image on small screen
+     */
+    .mfp-img-mobile .mfp-image-holder {
+      padding-left: 0;
+      padding-right: 0; }
+  
+    .mfp-img-mobile img.mfp-img {
+      padding: 0; }
+  
+    /* The shadow behind the image */
+    .mfp-img-mobile .mfp-figure:after {
+      top: 0;
+      bottom: 0; }
+  
+    .mfp-img-mobile .mfp-bottom-bar {
+      background: rgba(0, 0, 0, 0.6);
+      bottom: 0;
+      margin: 0;
+      top: auto;
+      padding: 3px 5px;
+      position: fixed;
+      -webkit-box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      box-sizing: border-box; }
+  
+    .mfp-img-mobile .mfp-bottom-bar:empty {
+      padding: 0; }
+  
+    .mfp-img-mobile .mfp-counter {
+      right: 5px;
+      top: 3px; }
+  
+    .mfp-img-mobile .mfp-close {
+      top: 0;
+      right: 0;
+      width: 35px;
+      height: 35px;
+      line-height: 35px;
+      background: rgba(0, 0, 0, 0.6);
+      position: fixed;
+      text-align: center;
+      padding: 0; }
+  
+    .mfp-img-mobile .mfp-figure small {
+      display: inline;
+      margin-left: 5px; } }
+  @media all and (max-width: 900px) {
+    .mfp-arrow {
+      -webkit-transform: scale(0.75);
+      transform: scale(0.75); }
+  
+    .mfp-arrow-left {
+      -webkit-transform-origin: 0;
+      transform-origin: 0; }
+  
+    .mfp-arrow-right {
+      -webkit-transform-origin: 100%;
+      transform-origin: 100%; }
+  
+    .mfp-container {
+      padding-left: 6px;
+      padding-right: 6px; } }
+  .mfp-ie7 .mfp-img {
+    padding: 0; }
+  .mfp-ie7 .mfp-bottom-bar {
+    width: 600px;
+    left: 50%;
+    margin-left: -300px;
+    margin-top: 5px;
+    padding-bottom: 5px; }
+  .mfp-ie7 .mfp-container {
+    padding: 0; }
+  .mfp-ie7 .mfp-content {
+    padding-top: 44px; }
+  .mfp-ie7 .mfp-close {
+    top: 0;
+    right: 0;
+    padding-top: 0; }
+  
+  //Magnific overrides
+  .mfp-image img{
+    background: white;
+  }
+  .mfp-figure:after {
+    background: white;
+  }
+  
+  /*
+   * Off Canvas navbar toggle right
+   * --------------------------------------------------
+   */
+  
+  @media screen and (max-width: 768px) {
+    .row-offcanvas .collapsing {
+    -webkit-transition: none 0;
+      -moz-transition: none 0;
+      transition: none 0;
+    }
+   .row-offcanvas .navbar {
+    position: absolute;
+    z-index: 2;
+      right:0;
+      height:100%;
+      width:55px;
+      border:0;
+      background-color:transparent;
+    }
+    .row-offcanvas .navbar-toggle {
+      margin-right: 5px;
+      margin-left: 5px;
+    }
+    .row-offcanvas {
+      position: relative;
+    }
+    .row-offcanvas-right.active .navbar {
+    position: absolute;
+    z-index: 2;
+      right: -28.4%;
+      width:40%;
+      background-color:#eee;
+      border:0 solid #ddd;
+      border-left-width:1px;
+    }
+    .row-offcanvas-right.active {
+      left: -30%;
+    }
+    .row-offcanvas-right.active .navbar-collapse {
+      position: relative;
+      width: 100%;
+    }
+    .row-offcanvas .content {
+    /*width:calc(100% - 60px);*/
+    }
+  }
+  </style>
+</head>
+<body>
+<div id="wrap">
+<div class="container">
+<div class="row row-offcanvas row-offcanvas-right">
+<div class="contents col-xs-12 col-md-10">
+<h2 id="mammaprint-report">MammaPrint Report</h2>
+<h1 id="introduction">Introduction</h1>
+<p>The following code will build a decision tree model that uses top-scoring pair (TSP) features as predictors <span class="citation">(Geman et al. 2004)</span>. TSPs are rank-based features that consider the relationship between two genes rather than their raw expression levels. For two genes <span class="math"><em>g</em><sub>1</sub></span>, <span class="math"><em>g</em><sub>2</sub></span>, the feature of interest is the indicator of whether or not <span class="math"><em>g</em><sub>2</sub></span> is more highly expressed than <span class="math"><em>g</em><sub>1</sub></span>: I<span class="math">(<em>g</em><sub>1</sub> &lt; <em>g</em><sub>2</sub>)</span>.</p>
+<p>We will build a model based on pairs of this form to predict patient outcomes.</p>
+<p>To begin, we set an initial random seed to ensure reproducibility of our results.</p>
+<div class="row">
+<button class="source R toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-up"></span> R source
+</button>
+<pre style="display:none"><code class="source r">set.seed(seed)</code></pre>
+</div>
+<h1 id="training-and-testing-data">Training and Testing Data</h1>
+<p>If validation data have been supplied, we will build our model on the training data and make predictions the validation data. If not, we will split the provided dataset into training and testing sets, build the model on the training set, and predict on the testing set. These procedures ensure that our model does not overfit to our training data.</p>
+<div class="row">
+<button class="source R toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-up"></span> R source
+</button>
+<pre style="display:none"><code class="source r">if(is.null(val)){
+    ## Split data into 3/4 train, 1/4 test
+    idx <- sample(1:ncol(data), ncol(data)/4)
+    train <- data[,-idx]
+    test <- data[,idx]
+    train_outcome <- outcome[-idx]
+    test_outcome <- outcome[idx]
+    if(!is.null(covar)){
+        train_covar <- covar[-idx,]
+        test_covar <- covar[idx,]
+    } else {
+        train_covar <- test_covar <- covar # all NULL
+    }
+} else {
+    train <- data
+    test <- val
+    train_outcome <- outcome
+    test_outcome <- val_outcome
+    train_covar <- covar
+    test_covar <- val_covar
+}</code></pre>
+</div>
+<h1 id="feature-selection">Feature Selection</h1>
+<p>We employ two steps to find the most predictive gene pair features for our model. We need these feature selection steps because we cannot easily consider all pairwise combinations of genes.</p>
+<ol style="list-style-type: decimal">
+<li>Empirical Controls feature selection - This step is a filtration step that does not yet consider the relationship between features and the outcome. We want gene pairs <span class="math"><em>g</em><sub>1</sub></span>, <span class="math"><em>g</em><sub>2</sub></span> such that the TSP I<span class="math">(<em>g</em><sub>1</sub> &lt; <em>g</em><sub>2</sub>)</span> is informative. Our quick approach to finding candidate predictors is to focus on pairs where one gene does not vary much between the classes in our outcome while the other varies a lot. To find pairs like this, we rank all of the genes by their average expression and break them up into groups by quantiles. In each quantile, we find the most and least variable genes and create all possible pairs out of those sets. Over all quantiles, we get an initial set of pairs to consider. Through trials across many datasets, we have found that taking the top and bottom 40 such pairs qithin each quantile provides a good initial feature base.</li>
+</ol>
+<div class="row">
+<button class="source R toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-up"></span> R source
+</button>
+<pre style="display:none"><code class="source r">pairs <- empirical_controls(train, 40)
+
+## Throw out pairs that do not flip between classes - all 0s or all 1s - if they exist
+rmp <- which(rowMeans(pairs) == 1 | rowMeans(pairs) == 0)
+if(length(rmp) > 0){
+    pairs <- pairs[-rmp,]
+}</code></pre>
+</div>
+<ol start="2" style="list-style-type: decimal">
+<li>Regression-based feature selection - In step 2, we pare down to a final set of features of a predetermined size, this time using the outcome to help guide us. We judge how predictive a particular pair is for the outcome via a series of regression models. For each subsequent pair, we include all previously chosen pairs in our regression model. This allows us to select the pair that offers the most additional information about the outcome taking the ones we have already chosen into account.</li>
+</ol>
+<h1 id="cross-validation">Cross-validation</h1>
+<p>We use 5-fold cross-validation to get an estimate of the out-of-sample accuracy of our predictor. This means that we further break up the training data into training and testing subsets and do the same procedure described above. We break up the data 5 different times and determine the accuracy of the model we build each time. We then take the average of these accuracies as an indication of how well we think our final model, which will be built on the entire traning data set, will do on an external data set.</p>
+<p>The following code executes the entire TSP model-building procedure.</p>
+<div class="row">
+<button class="source R toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-up"></span> R source
+</button>
+<pre style="display:none"><code class="source r">## This function builds the decision tree on the entire test data and provideds an out-of-sample accuracy estimate.
+model_out <- tsp_model_builder(train, train_outcome, train_covar, pairs, test, test_covar, npair)</code></pre>
+</div>
+<h1 id="results">Results</h1>
+<h2 id="decision-tree-model">Decision Tree Model</h2>
+<p>Displayed below is the final decision tree prediction model built using the training data. The pairs that were chosen are labeled below. Note that fewer than the desired number of pairs may appear in the final model - the set chosen is most parsimonious.</p>
+<p>Think of the decision tree as a cascading set of choices that result in a predicted probability of the outcome occurring. Start at the top - for a particular patient, the first question is whether the gene 2 in the pair at the top of the tree is more highly expressed than gene 1. If this is true, then we drop down to the left and examine the next decision. If this is false, then we drop down to the right. We keep considering subsequent decisions and go left or right until we reach a terminal point that does not continue to a next decision. At this point appears the probability of the outcome occurring for this particular patient.</p>
+<div class="row">
+<button class="source R toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-up"></span> R source
+</button>
+<pre style="display:none"><code class="source r">drawTreeNodes(model_out$display_tree, digits=2)</code></pre>
+<div class="row">
+<div class="col-md-offset-3 col-md-6">
+<a href="#" class="thumbnail"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAfgAAAH4CAMAAACR9g9NAAABDlBMVEX9/v0AAAAAADkAAGUAOY8AZrUA//4A//85AAA5ADk5AGU5OWU5OY85j7U5j9o5//05//9lAABlADllAGVlOQBlOY9lZjllZmVltf1l//5l//+AAP6AAP+AOf6A/wCA/zmA/2WA/7WPOQCPOTmPOWWPZgCPjzmPtY+P29qP2/2P/v2P/v6P//+XAP+Xj/2X/wCX/9qsAP+sOf6stf2s/v2s/wC1ZgC1Zjm1/v3BOf/B2/3B/v3B/wDVZv/V/v3V/wDajzna/v3a///pj//p/v3p/zn9jzn9tWX9tf7924/92/79/mX9/o/9/rX9/tr9/v39/v7+AAD+OQD+tf3+2/3/AAD/ADn/OY//ZrX/j9q99WH1AAAAWnRSTlP/////////////////////////////////////////////////////////////////////////////////////////////////////////AP/////////////m7/ZIAAAACXBIWXMAAAsSAAALEgHS3X78AAANgUlEQVR4nO3d+2Pb1BmHcdQm1GWdIekAb+vKlhaYt26MXUzYhcWMTWjMVnfpLv//PzId6VVkmwS/sXWxz/f5/EBNMFFOn54jyWmOX8sh6bWhvwAMg/CiCC+K8KIIL4rwoggvivCiCC+K8KIIL4rwoggvivCiCC+K8KIIL4rwoggvivCiCC+K8KIIL4rwoggvivCiCC+K8KIIL4rwoggvivCiCC+K8KIIL4rwoggvivCiCC+K8KIIL4rwoggvivCiCC+K8KIIL4rwoggvivCiCC+K8KIIL4rwoggvivCiCC+K8KIIL4rwoggvivCiCC+K8KIIL4rwoggvivCiCC+K8KIIL4rwoggvivCiCC+K8KIIL4rwoggvivCiCC+K8KIIL4rwoo4rfPbG5banLM6Sk3n56CpJkvtbn6/qqMKn20MuLyb51Wn5cDbp/is6XscQfvH4g+TetCh578Nmxmejla5p+M/23EtbF5bPpjludRThz07maTnX66V+eWHreZoEk+YD2aN5vjiflv9X+V9ws+MIP7H5a+GbCb6iWgLSkzp89nDKrL/dUYQPIcsz9tdmfO2GGV/iPH+bYwm/NuMDm+DVUn/TOb5E+Nsc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" alt="plot of chunk tree" /> </a>
+</div>
+</div>
+</div>
+<p>Gene pairs at each node in the model:</p>
+<div class="row">
+<button class="source R toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-up"></span> R source
+</button>
+<pre style="display:none"><code class="source r">df <- data.frame("Tree Node Label" = model_out$pair_names, "Feature Name" = gsub("<", " \\< ", model_out$final_names))
+kable(df)</code></pre>
+<button class="output R toggle btn btn-xs btn-success">
+<span class="glyphicon glyphicon-chevron-down"></span> R output
+</button>
+<pre style=""><code class="output r">## 
+## 
+## |Tree.Node.Label |Feature.Name         |
+## |:---------------|:--------------------|
+## |p1              |USP7 < RP11-423C15.3 |
+## |p2              |NM_018610 < MTCH1    |
+## |p3              |RND1 < LGALS14       |
+## |p4              |MEA1 < MMP25         |
+## |p5              |TFRC < SPG21         |
+</code></pre>
+<button class="source R toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-up"></span> R source
+</button>
+<pre style="display:none"><code class="source r">##cat(paste0(model_out$pairnames, ": ", model_out$final_names, "\n", collapse="\n"))</code></pre>
+</div>
+<h2 id="out-of-sample-accuracy">Out-of-Sample Accuracy</h2>
+<p>The accuracy displayed here represents our estimate of the accuracy of our predictor in an external dataset. We obtained this estimate from cross-validation, as described above.</p>
+<div class="row">
+<button class="source R toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-up"></span> R source
+</button>
+<pre style="display:none"><code class="source r">cat(paste0("Out-of-sample accuracy: ", round(mean(model_out$acc), digits=3)))</code></pre>
+<button class="output R toggle btn btn-xs btn-success">
+<span class="glyphicon glyphicon-chevron-down"></span> R output
+</button>
+<pre style=""><code class="output r">## Out-of-sample accuracy: 0.678
+</code></pre>
+</div>
+<h2 id="resubstitution-and-testvalidation-roc-curves">Resubstitution and Test/Validation ROC Curves</h2>
+<p>An ROC curve is a representation of the sensitivty and specificity (or true positive and true negative rates) of our predictor. We present curves for the training and testing datasets. To obtain these curves, we make predictions with our final decision tree model for all patients in the training and testing sets. Then each patient is assigned a probability of the outcome occurring, from 0 to 1. We then take a threshold between 0 and 1 and say that anybody with a probability below this threshold will be classified as &quot;no outcome occurring&quot; and anybody above this threshold will be classified as &quot;outcome occurring&quot;. We then compare our predictions to the true outcomes and calculate how many ocurrences we got correct (sensitivity) and how many non-occurences we got correct (specificity). To get the full curve, we vary the threshold from 0 to 1 and re-do this calculation for each threshold.</p>
+<p>Our curves also come with pointwise 95% confidence intervals that are calculated via bootstrap. These give us a sense of how certain we are about the curve at every threshold value.</p>
+<div class="row">
+<button class="source R toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-up"></span> R source
+</button>
+<pre style="display:none"><code class="source r">options(bitmapType="cairo")
+
+lb <- rgb(154, 192, 205, alpha=0.6*255, maxColorValue=255)
+
+roc_train <- plot.roc(train_outcome, model_out$p_train,  main=paste0("Training Data ROC (n=",length(train_outcome),")"), legacy.axes=T)
+ci_train <- ci.se(roc_train, progress="none")
+plot(ci_train, type="shape", col=lb)
+
+title <- ifelse(is.null(val), "Test Data ROC", "Validation Data ROC")
+title <- paste0(title, " (n=", length(test_outcome), ")")
+
+roc_test <- plot.roc(test_outcome, model_out$p_test,  main=title, legacy.axes=T)
+ci_test <- ci.se(roc_test, progress="none")
+plot(ci_test, type="shape", col=lb)</code></pre>
+<div class="col-md-6">
+<a href="#" class="thumbnail"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAWgAAAFoCAMAAABNO5HnAAAAnFBMVEX9/v0AAAAAADkAAGUAOTkAOY8AZrU5AAA5ADk5AGU5OTk5OWU5OY85ZmU5ZrU5j9plAABlADllAGVlOQBlOY9lZgBlZjllZmVltf2POQCPOTmPOWWPZgCPjzmPtY+P27WP29qP2/2pqam1ZgC1Zjm1tWW124+1/rW1/v3C2eDajzna24/a/rXa/tra/v39tWX924/9/rX9/tr9/v0wYh22AAAANHRSTlP///////////////////////////////////////////////////////////////////8AS1ciZQAAAAlwSFlzAAALEgAACxIB0t1+/AAADzVJREFUeJzt3Qt/27YRAPDSrq1mSyc7yzop27rJ3JaE7UxJ/P7fbQQIviSQvMPj8LzfVosOX/rrdARJEP6hyUESP7jegVQiQxNFhiaKDE0UGZooMjRRZGiiyNBEkaGJIkMTBRX09VjweJ799vLy+E0+cTMbX/Yw/V15kM3C18BfP70Pv973M1UPJ9nqzzu+V6VYqOSrOe/2snmVwy00MIRiMXnrZSGFZlTnHX/FUOvZRi8v0q2X3QylmLMUH1i59LGrBWHpOO9ahevx4ZfWoO4kWBJfj4//4e9sNsE+mcevL31est/U7PfdgvxjexYTzThLtwrh9vTevmw/m6qfp2o/nGEDVfcZHNp5/sAWYIt2/+erP7QrN5rS9NAs7X5/6bJPwHS5NJvgL37cTaFZFneJ+/Q/Di0mJrOw/567hdpP9NS9vB675Ge/aYYNDNBf2k/9uRlc+TIlT4JuzYbCAfTwRe5SiKddPap3E+cdz7oZdNWVCz7Vl46+sPelg6V5t4F2jnlScrlhA5N/ENA/7wpRLfi/t7lvsnY4KB38e8xgemiRPrOJuvs630N3CwpoMdFMj5eL0OP22Xr7jG4G6OFgWvNa0++poXAD3R2vemhen3toMSGDbun6BTn0MNH03w8Gu1g6xPbFBu6heb06jDW9jAC6akVYcViGlpQOdjDsF+TQw0Q/Syt/aCYHw06+h5tDT3aMQ/M2XrfWbo1RZHT/PV2GvjkY9s274QvO2mSTb7v4LKquBSxv3okavQDdN+uGGhRHjW7f1b5ijYglaIY7ad4NX3OxINN8eu8nmh66y+au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" alt="plot of chunk roc" /> </a>
+</div>
+<div class="col-md-6">
+<a href="#" class="thumbnail"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAWgAAAFoCAMAAABNO5HnAAAAn1BMVEX9/v0AAAAAADkAAGUAOTkAOY8AZrU5AAA5ADk5AGU5OWU5OY85ZmU5ZrU5j485j9plAABlADllAGVlOQBlOY9lZgBlZjllZmVltbVltf2POQCPOTmPOWWPZgCPjzmPtY+P27WP29qP2/2pqam1ZgC1Zjm1tWW124+1/rW1/v3C2eDajzna24/a/rXa/tra/v39tWX924/9/rX9/tr9/v1dFQT7AAAANXRSTlP/////////////////////////////////////////////////////////////////////AHy10AoAAAAJcEhZcwAACxIAAAsSAdLdfvwAAA7qSURBVHic7d0Lf9u2EQDw0pnlZtkmO8seUralc7i2Kduakvj9P9sIgE8RJA8geDgAd7+mkiwSIv86H8EX/F3FgRLf+V6AVIKhkYKhkYKhkYKhkYKhkYKhkYKhkYKhkYKhkWJ36Ns5O9UPZfb41vzk+vzum/jXvOh+Xkd+qrp3JnF9zkSchj/LT7pJZAvyuWpcPj22ExUPr/rGD2pxxWORqc+6PB2n01rF/hldyBXI+xUdUY6g87HiXTSK2WDV72doJ6nbvDzJZwK1VD88tNMcpm0LXzlFrh6Ltpl87ms3jf2hL0/1skrcUq14l9Fi7f4poNUbcmUP6msoFOjt/O7HJkHbL6jMupbUDG2z/STi//V76vt9fKufHkWLzTRF/eV07faZ+/im/vW/baX6khyl9P7Qt3O9wJenQ5Nuj28ttMoi+QP5+HsPnTcp2EyiUrABqLP4boZsUCNaaKHWfLh6ejuf+sXp2m2hxTvCtJRZLb+S6/Oxui9tGwJhY1jUK1A0v+MtsrKQKTUgEpVAvSMTX+bssSvvDXTTVDfD4K2udByUWCW/lnFSSrlRu03I4ianVa2qolHnvpvagQBdr9rv52771ENLC5Ux6o0OWinVojL92qQaQg9m6F5Uw+3lLLTM767dYUYL0x66KeVySheB0b3LH76IjbfaPGmg2zd00LK+j6BzUVEHM3QvqvYXJjs2nrrS0UA37bbQqmS0j8K2/R3MA4Iu1cZKlJB2YzMqHe0butIxgRYbw9EM3Yt2klpebO66jaGSbzeGY+h2EdVyiS+l21CryYPK6HpNxSqV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" alt="plot of chunk roc" /> </a>
+</div>
+</div>
+<h1 id="precision-gain-in-a-clinincal-trial-setting">Precision Gain in a Clinincal Trial Setting</h1>
+<p>Our final goal is to get a sense of how much value this gene signature would provide in a clinical trial setting. We focus on this setting because we have methods, developed by Colantuoni et. Al <span class="citation">(Colantuoni and Rosenblum In Press)</span>, that allow us to approximate how much more precise of a treatment effect estimate we might expect in a trial where we could apply this predictor to all subjects. It is one means of examining how much additional variability in our outcome of interest we might be able to explain with this gene signature.</p>
+<div class="row">
+<button class="source R toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-up"></span> R source
+</button>
+<pre style="display:none"><code class="source r">sig_precision <- sig_precision_crude(test_outcome, model_out$p_test, test_covar)
+sig_precision</code></pre>
+<button class="output R toggle btn btn-xs btn-success">
+<span class="glyphicon glyphicon-chevron-down"></span> R output
+</button>
+<pre style=""><code class="output r">## [1] 0.02697
+</code></pre>
+</div>
+<p>The results above suggest that if we adjusted for our predictor and estimated a treatment effect in a clinical trial for our outcome of interest, we could improve the precision of our estimator by 2.7%.</p>
+<h1 id="end-matter">End Matter</h1>
+<p>sig2trial report v0.9 This report was built using the <a href="https://github.com/leekgroup/sig2trial/">sig2trial</a> R package.</p>
+<p>Authors: <a href="http://www.biostat.jhsph.edu/~prpatil/">Prasad Patil</a>, <a href="http://jtleek.com/">Jeff Leek</a></p>
+<p>R session info:</p>
+<div class="row">
+<button class="source R toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-up"></span> R source
+</button>
+<pre style="display:none"><code class="source r">sessionInfo()</code></pre>
+<button class="output R toggle btn btn-xs btn-success">
+<span class="glyphicon glyphicon-chevron-up"></span> R output
+</button>
+<pre style="display:none"><code class="output r">## R version 3.1.1 (2014-07-10)
+## Platform: x86_64-w64-mingw32/x64 (64-bit)
+## 
+## locale:
+## [1] LC_COLLATE=English_United States.1252 
+## [2] LC_CTYPE=English_United States.1252   
+## [3] LC_MONETARY=English_United States.1252
+## [4] LC_NUMERIC=C                          
+## [5] LC_TIME=English_United States.1252    
+## 
+## attached base packages:
+## [1] parallel  stats     graphics  grDevices utils     datasets  methods  
+## [8] base     
+## 
+## other attached packages:
+##  [1] sig2trial_0.1        org.Hs.eg.db_2.14.0  RSQLite_1.0.0       
+##  [4] DBI_0.3.1            AnnotationDbi_1.26.1 GenomeInfoDb_1.0.2  
+##  [7] BiocInstaller_1.14.3 Biobase_2.24.0       BiocGenerics_0.10.0 
+## [10] knitrBootstrap_1.0.0 rmarkdown_0.5.1      knitr_1.6           
+## [13] pROC_1.7.3           rattle_3.3.0         rpart_4.1-8         
+## [16] devtools_1.6.1      
+## 
+## loaded via a namespace (and not attached):
+##  [1] digest_0.6.4    evaluate_0.5.5  formatR_1.0     htmltools_0.2.6
+##  [5] IRanges_1.22.10 markdown_0.7.4  mime_0.2        plyr_1.8.1     
+##  [9] Rcpp_0.11.3     roxygen2_4.1.0  stats4_3.1.1    stringr_0.6.2  
+## [13] tools_3.1.1     yaml_2.1.13
+</code></pre>
+</div>
+</div>
+</div>
+<div class="navbar navbar-fixed-bottom navbar-inverse">
+<div class="container">
+<div class="navbar-header">
+<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-responsive-collapse">
+<span class="icon-bar"></span> <span class="icon-bar"></span> <span class="icon-bar"></span>
+</button>
+</div>
+<div id="bottom-navbar" class="navbar-collapse collapse navbar-responsive-collapse">
+<ul class="nav navbar-nav navbar-right">
+<li class="nav">
+<p class="navbar-text">
+Toggle
+</p>
+</li>
+<li class="dropup">
+<a href="#" class="dropdown-toggle" data-toggle="dropdown">Code <b class="caret"></b></a>
+<ul class="dropdown-menu">
+<li class="dropdown-header">
+Languages
+</li>
+<li class="active">
+<a href="#" class="toggle-global source R" type="source.R">R</a>
+</li>
+<li>
+<a href="#" type="all-source" class="toggle-global">All</a>
+</li>
+</ul>
+</li>
+<li class="dropup">
+<a href="#" class="dropdown-toggle" data-toggle="dropdown">Output <b class="caret"></b></a>
+<ul class="dropdown-menu">
+<li class="dropdown-header">
+Type
+</li>
+<li class="active">
+<a href="#" class="toggle-global output" type="output">output</a>
+</li>
+<li>
+<a href="#" type="all-output" class="toggle-global">All</a>
+</li>
+</ul>
+</li>
+<li class="active">
+<a href="#" type="figure" class="toggle-global">Figures</a>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div id="push">
+
+</div>
+<div id="footer">
+<div class="container">
+<p class="text-muted" id="credit">
+Styled with <a href="https://github.com/jimhester/knitrBootstrap">knitrBootstrap</a>
+</p>
+</div>
+</div>
+<link rel="stylesheet" id="theme" href="https://netdna.bootstrapcdn.com/bootswatch/3.0.0/flatly/bootstrap.min.css" media="screen"></link><link rel="stylesheet" id="highlight" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/7.3/styles/github.min.css" media="screen"></link>
+</div>
+<div class="references">
+<p>Colantuoni, Elizabeth, and Michael Rosenblum. In Press. “Leveraging Prognostic Baseline Variables to Gain Precision in Randomized Trials.” <em>Statistics in Medicine, Working Paper Version Available at: http://biostats.bepress.com/jhubiostat/paper263</em>. Johns Hopkins University.</p>
+<p>Geman, Donald, Christian d’Avignon, Daniel Q Naiman, and Raimond L Winslow. 2004. “Classifying Gene Expression Profiles from Pairwise MRNA Comparisons.” <em>Statistical Applications in Genetics and Molecular Biology</em> 3 (1): 1–19.</p>
+</div>
+</body>
+</html>
