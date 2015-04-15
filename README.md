@@ -16,9 +16,9 @@ provides a better approximation to the possible precision gain via simulation (t
 
 ### Installation
 
-(1) Have R installed
-(2) Ensure that the devtools package is installed [install.packages("devtools")]
-(3) install_github("prpatil/sig2trial")
+1. Have R installed
+2. Ensure that the devtools package is installed. Use `install.packages("devtools")` otherwise.
+3. `install_github("prpatil/sig2trial")`
 
 ### R Package Dependencies
 rpart, rattle, pROC, knitr, rmarkdown, knitrBootstrap
