@@ -3,7 +3,7 @@ Title: Pipeline R package for creating simple gene signatures and testing their 
 Version: 0.1
 Authors@R: "Prasad Patil <prpatil42@gmail.com> [aut, cre]"
 Description: This package builds a simple, decision-tree based gene signature on a set of training data. The model-building and validation results are presented in an HTML report created by knitr. The resulting model can be evaluated as a baseline covariate in a clinical trial setting, with an accompanying report for that analysis as well.
-Depends: R (>= 3.1.1), rpart, rattle, pROC, knitr, rmarkdown, knitrBootstrap
+Depends: R (>= 3.1.1), rpart, pROC, knitr, rmarkdown, knitrBootstrap
 License: >GPL-2
 LazyData: true
 Suggests: knitr

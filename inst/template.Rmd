@@ -108,7 +108,9 @@ examine the next decision. If this is false, then we drop down to the right. We 
 point that does not continue to a next decision. At this point appears the probability of the outcome occurring for this particular patient.
 
 ```{r tree, warning=F, bootstrap.show.code=F}
-drawTreeNodes(model_out$display_tree, digits=2)
+# If we had rattle...
+#drawTreeNodes(model_out$display_tree, digits=2)
+plot(model_out$display_tree)
 ```
 
 Gene pairs at each node in the model:
