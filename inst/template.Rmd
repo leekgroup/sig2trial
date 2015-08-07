@@ -109,8 +109,8 @@ point that does not continue to a next decision. At this point appears the proba
 
 ```{r tree, warning=F, bootstrap.show.code=F}
 # If we had rattle...
-#drawTreeNodes(model_out$display_tree, digits=2)
-plot(model_out$display_tree)
+drawTreeNodes(model_out$display_tree, digits=2)
+#plot(model_out$display_tree)
 ```
 
 Gene pairs at each node in the model:
