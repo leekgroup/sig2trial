@@ -26,13 +26,13 @@
 
 tspreg_report <- function(data, outcome, covar=NULL, val=NULL, val_outcome=NULL, val_covar=NULL, npair=5, filename=NULL, title="Example", seed=47209){
 	# Formal input checking to come
-	if(is.null(filepath)){
-		filepath <- paste0(getwd(), "/", format(Sys.time(), "%y_%m_%d_%H%M%S"), "_output.html")
+	if(is.null(filename)){
+		filename <- paste0(getwd(), "/", format(Sys.time(), "%y_%m_%d_%H%M%S"), "_output.html")
 	} else {
-		filepath <- paste0(getwd(), "/", filename, ".html")
+		filename<- paste0(getwd(), "/", filename, ".html")
 	}
 	
-	render(system.file("template.Rmd", package="sig2trial"), output_format="knitrBootstrap::bootstrap_document",output_file=filepath)
+	render(system.file("template.Rmd", package="sig2trial"), output_format="knitrBootstrap::bootstrap_document",output_file=filename)
 
 	model_out$tree
 }
