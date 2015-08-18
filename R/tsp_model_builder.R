@@ -12,6 +12,7 @@
 #' @param test p x m test data matrix, where p columns and column names match up with train
 #' @param test_covar m x s additional covariates for training data (necessary if train_covar specified; column names must match)
 #' @param npair Number of pairs desired in the model
+#' @param predtype Type of predictions to make - "class" if initial outcome is factor, "vector" if initial outcome is non-factor
 #'
 #' @export 
 #'
@@ -34,7 +35,7 @@
 
 
 
-tsp_model_builder <- function(train, train_outcome, train_covar, pairs, test, test_covar, npair){
+tsp_model_builder <- function(train, train_outcome, train_covar, pairs, test, test_covar, npair, predtype){
 
 	ncv <- 5 # no. cross validation folds
 	idxs <- split(sample(1:ncol(train)), rep(1:ncv, each=ncol(train)/ncv))
@@ -67,10 +68,14 @@ tsp_model_builder <- function(train, train_outcome, train_covar, pairs, test, te
 	        tmp_train_data <- as.data.frame(cbind(ktrain_covar, t(ktrain[cp,])))
 	        tree <- rpart(ktrain_outcome~., data = tmp_train_data)
 	        tree <- prune(tree, cp=tree$cptable[which.min(tree$cptable[,"xerror"]),"CP"])
-		  tmp_test_data <- as.data.frame(cbind(ktest_covar,t(ktest[cp,])))
-	        preds <- predict(tree, newdata=tmp_test_data)
+		    tmp_test_data <- as.data.frame(cbind(ktest_covar,t(ktest[cp,])))
+	        preds <- predict(tree, newdata=tmp_test_data, type=predtype)
 
-      	  acc[i] <- sum(ifelse(preds > 0.5, 1, 0) == ktest_outcome)/length(ktest_outcome)
+      	    if(predtype == "class"){
+				acc[i] <- sum(preds == ktest_outcome)/length(ktest_outcome)
+			else {
+				acc[i] <- mean((ktest_outcome - preds)^2)
+			}
 	}
 
 	# Now we build the overall model on the whole data
@@ -87,12 +92,12 @@ tsp_model_builder <- function(train, train_outcome, train_covar, pairs, test, te
 	display_tree <- rpart(train_outcome~., data=pairtmp)
 	display_tree <- prune(display_tree, cp=tree$cptable[which.min(tree$cptable[,"xerror"]),"CP"])
 
-	p_train <- predict(tree)
+	p_train <- predict(tree, type=predtype)
 
 	test_dm <- as.data.frame(cbind(test_covar, sapply(final_names, single_pairs, test)))
 	#colnames(test_dm) <- pair_names
 
-	p_test <- predict(tree, newdata=test_dm)
+	p_test <- predict(tree, newdata=test_dm, type=predtype)
 
 	list("tree"=tree, "display_tree"=display_tree, "p_train"=p_train, "p_test"=p_test, "final_names"=final_names, "pair_names"=pair_names, "acc"
 =acc)

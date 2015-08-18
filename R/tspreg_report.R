@@ -32,6 +32,7 @@ tspreg_report <- function(data, outcome, covar=NULL, val=NULL, val_outcome=NULL,
 		filename<- paste0(getwd(), "/", filename, ".html")
 	}
 	
+	predtype <- ifelse(is.factor(outcome), "class", "vector")
 	render(system.file("template.Rmd", package="sig2trial"), output_format="knitrBootstrap::bootstrap_document",output_file=filename)
 
 	model_out$tree
