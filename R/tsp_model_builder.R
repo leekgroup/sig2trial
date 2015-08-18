@@ -73,7 +73,7 @@ tsp_model_builder <- function(train, train_outcome, train_covar, pairs, test, te
 
       	    if(predtype == "class"){
 				acc[i] <- sum(preds == ktest_outcome)/length(ktest_outcome)
-			else {
+			} else {
 				acc[i] <- mean((ktest_outcome - preds)^2)
 			}
 	}
