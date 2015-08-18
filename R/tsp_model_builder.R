@@ -99,7 +99,7 @@ tsp_model_builder <- function(train, train_outcome, train_covar, pairs, test, te
 
 	p_test <- predict(tree, newdata=test_dm, type=predtype)
 
-	list("tree"=tree, "display_tree"=display_tree, "p_train"=p_train, "p_test"=p_test, "final_names"=final_names, "pair_names"=pair_names, "acc"
+	list("tree"=tree, "display_tree"=display_tree, "p_train"=as.numeric(p_train), "p_test"=as.numeric(p_test), "final_names"=final_names, "pair_names"=pair_names, "acc"
 =acc)
 
 }
