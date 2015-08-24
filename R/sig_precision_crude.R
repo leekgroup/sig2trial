@@ -30,5 +30,5 @@ sig_precision_crude <- function(test_outcome, test_pred, test_covar){
 		mod2 <- glm(test_outcome ~ dm)
 	}
 
-	1 - sum((as.numeric(test_outcome) - mod2$fitted.values)^2)/sum((as.numeric(test_outcome) - mod1$fitted.values)^2)
+	1 - sum((as.numeric(test_outcome) - mod2$fitted.values)^2, na.rm = T)/sum((as.numeric(test_outcome) - mod1$fitted.values)^2, na.rm = T)
 }
