@@ -1,0 +1,92 @@
+---
+bibliography: bibliography.bib
+output:
+  knitrBootstrap::bootstrap_document:
+    theme: Flatly
+    highlight: Github
+    theme.chooser: FALSE
+    highlight.chooser: FALSE
+---
+
+`r title`
+---------------------------------------
+
+We have provided a generic data analysis template format with descriptions and examples of what general items should appear in each section. Please edit this template to 
+fit with your expected data inputs and analysis.
+
+
+# Introduction
+
+Provide an overview of what your analysis will accomplish and how.
+
+This template performs analysis XXX. With data input Y, the following steps are run... Resulting figures A, B, and tables C, D are provided to summarize the analysis.
+
+# Environment and data preparation
+
+Add chunks which prepare the computing environment and the data input for analysis. For example, setting random seeds, defining training and testing datasets, normalization and pre-processing.
+For ease of reading, split up different core steps into different chunks.
+
+```{r initialize, warning=F, messages=F, bootstrap.show.code=F}
+set.seed(seed)
+library(library)
+```
+
+# Training and Testing Data
+
+If validation data have been supplied, we will build our model on the training data and make predictions the validation data. If not, we will split the provided dataset
+into training and testing sets, build the model on the training set, and predict on the testing set. These procedures ensure that our model does not overfit to our 
+training data.
+
+```{r train-test, warning=F, bootstrap.show.code=F}
+
+...
+
+```
+
+
+# Main Data Analysis
+
+Here, the prepared data are analyzed. A wide range of steps may be applicable in this section depending on the goal of the analysis. Include any and all data manipulation, 
+statistical modeling, etc., but do not present results. Clearly define steps in different chunks.
+
+Feature selection steps X, Y, Z are applied.
+```{r feature-selection, warning=F, bootstrap.show.code=F}
+
+...
+
+```
+
+Model-fitting steps A, B, C, are applied using method W.
+```{r model-fit, warning=F, bootstrap.show.code=F}
+
+...
+
+```
+
+# Report results
+
+Describe the results of the data analysis. Figures, tables, metrics, etc., should go in this section. Include descriptions of the different result quantities, how to 
+interpret them, what to expect.
+
+We present these important attributes of the analysis in figures A and B.
+
+```{r gen-fig, warning=F, bootstrap.show.code=F}
+
+...
+
+```
+
+# End Matter
+
+Provide a report version number, author/package information, citations if applicable, and dump R session info at the very end.
+
+myPackage report, version X.Y.Z
+This report was built using the [mypackage](https://mypackage) R package.
+
+Authors: [Author 1](http://author1.website), [Author 2](http://author2.website)
+
+R session info:
+
+```{r tail, bootstrap.show.code=F, bootstrap.show.output=F}
+sessionInfo()
+```

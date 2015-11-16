@@ -23,6 +23,9 @@ To begin, we set an initial random seed to ensure reproducibility of our results
 
 ```{r initialize, warning=F, messages=F, bootstrap.show.code=F}
 set.seed(seed)
+predtype <- ifelse(is.factor(outcome), "class", "vector")
+npair <- 5
+ec_pairs <- 40
 ```
 
 # Training and Testing Data
@@ -32,26 +35,26 @@ into training and testing sets, build the model on the training set, and predict
 training data.
 
 ```{r train-test, warning=F, bootstrap.show.code=F}
-if(is.null(val)){
-	## Split data into 3/4 train, 1/4 test
-	idx <- sample(1:ncol(data), ncol(data)/4)
-	train <- data[,-idx]
-	test <- data[,idx]
-	train_outcome <- outcome[-idx]
-	test_outcome <- outcome[idx]
-	if(!is.null(covar)){
-		train_covar <- covar[-idx,]
-		test_covar <- covar[idx,]
+if(is.null(data$val)){
+	## Split training data into 3/4 train, 1/4 test
+	idx <- sample(1:ncol(data$train), ncol(data$train)/4)
+	train <- data$train[,-idx]
+	test <- data$train[,idx]
+	train_outcome <- data$outcome[-idx]
+	test_outcome <- data$outcome[idx]
+	if(!is.null(data$covar)){
+		train_covar <- data$covar[-idx,]
+		test_covar <- data$covar[idx,]
 	} else {
 		train_covar <- test_covar <- covar # all NULL
 	}
 } else {
-	train <- data
-	test <- val
-	train_outcome <- outcome
-	test_outcome <- val_outcome
-	train_covar <- covar
-	test_covar <- val_covar
+	train <- data$train
+	test <- data$val
+	train_outcome <- data$outcome
+	test_outcome <- data$val_outcome
+	train_covar <- data$covar
+	test_covar <- data$val_covar
 }
 ```
 
@@ -69,7 +72,7 @@ we get an initial set of pairs to consider. Through trials across many datasets,
 a good initial feature base.
 
 ```{r empirical_controls, warning=F, bootstrap.show.code=F}
-pairs <- empirical_controls(train, 40)
+pairs <- empirical_controls(train, ec_pairs)
 
 ## Throw out pairs that do not flip between classes - all 0s or all 1s - if they exist
 rmp <- which(rowMeans(pairs) == 1 | rowMeans(pairs) == 0)
@@ -174,6 +177,11 @@ sig_precision
 The results above suggest that if we adjusted for our predictor and estimated a treatment effect in
 a clinical trial for our outcome of interest, we could improve the precision of our estimator by
 `r round(sig_precision*100,digits=2)`%.
+
+```{r return_elements, bootstrap.show.code=F}
+# Here, we return the tree model as output
+return_elements <- model_out$tree
+```
 
 # End Matter
 sig2trial report v0.9
