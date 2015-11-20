@@ -2,26 +2,30 @@
 #' Compare an edited report template to the standard report template
 #'
 #' @param analysis A character string specifing the desired analysis template. Current options are: "tsp".
-#' @param filename A character string specifying the name of the new template file. Default: "tmp_template.Rmd"
-#' @param outputname A character string specifying the name of a file to contain the file differences. Default: "tmp_diff.txt"
+#' @param file_path A character string specifying the path to the edited template file.
 #'
 #' @export
 #'
-#' @details This function does a simple file comparison of the original standard report template
-#' and a user-edited template. The differences are logged in the output file and saved in the
-#' working directory.
+#' @details This function uses diffr and htmlwidgets to render a file difference
+#' between an existing package template and a user-edited template. An HTML
+#' file is rendered and saved which displays the highlighted differences in
+#' the two files.
+#' 
+#' @return String with the file path for the html rendering of the diff
+#'
 
-diff_report <- function(analysis, filename="tmp_template.Rmd", outputname="tmp_diff.txt"){
+diff_report <- function(analysis, file_path){
 
-	if(anaysis !%in% c("tsp")){
+	if(!(analysis %in% c("tsp"))){
 		stop("Invalid analysis class specified")
 	}
 
-	analysis_path <- system.file(paste0(analysis, "_template.Rmd"), package="sig2trial")
+	analysis_path <- normalizePath(system.file(paste0(analysis, "_template.Rmd"), package="sig2trial"))
 
-	if(.Platform$OS.type == "windows"){
-		system(paste0("FC ", analysis_path, " ", filename, " > ", outputname))
-	} else {
-		system(paste0("diff ", analysis_path, " ", filename, " > ", outputname))	
-	}
+	tmp_diff <- diffr(analysis_path, file_path, before=paste("Original", analysis, "template"), after=paste("Edited", analysis, "template"))
+	html_path <- file.choose()
+	saveWidget(tmp_diff, html_path)
+	
+	html_path
+	
 }
